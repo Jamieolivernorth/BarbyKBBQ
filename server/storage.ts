@@ -1,6 +1,6 @@
 import { 
   User, InsertUser, Booking, InsertBooking,
-  LOCATIONS, PACKAGES
+  LOCATIONS, PACKAGES, SlotAvailability, TIME_SLOTS, MAX_BBQS
 } from "@shared/schema";
 
 export interface IStorage {
@@ -11,6 +11,7 @@ export interface IStorage {
   getUserBookings(userId: number): Promise<Booking[]>;
   getLocations(): Promise<typeof LOCATIONS>;
   getPackages(): Promise<typeof PACKAGES>;
+  getAvailability(date: Date): Promise<SlotAvailability[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -62,6 +63,33 @@ export class MemStorage implements IStorage {
 
   async getPackages() {
     return PACKAGES;
+  }
+
+  async getAvailability(date: Date): Promise<SlotAvailability[]> {
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    // Get all bookings for the given date
+    const dayBookings = Array.from(this.bookings.values()).filter(booking => {
+      const bookingDate = new Date(booking.date);
+      return bookingDate >= dayStart && bookingDate <= dayEnd;
+    });
+
+    // Calculate availability for each time slot
+    return TIME_SLOTS.map(timeSlot => {
+      const bookedBBQs = dayBookings
+        .filter(booking => booking.timeSlot === timeSlot)
+        .reduce((total, booking) => total + (booking.bbqCount || 1), 0);
+
+      return {
+        date: date,
+        timeSlot,
+        availableBBQs: MAX_BBQS - bookedBBQs
+      };
+    });
   }
 }
 

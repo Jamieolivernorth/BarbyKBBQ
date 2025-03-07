@@ -34,6 +34,7 @@ export const bookings = pgTable("bookings", {
   date: timestamp("date").notNull(),
   timeSlot: text("time_slot").notNull(), // "12-6pm" or "6-10pm"
   status: text("status").notNull().default("pending"),
+  bbqCount: integer("bbq_count").notNull().default(1),
 });
 
 export const insertUserSchema = createInsertSchema(users);
@@ -127,3 +128,14 @@ export const PACKAGES = [
     includesAlcohol: true
   }
 ];
+
+// Helper type for availability
+export type SlotAvailability = {
+  date: Date;
+  timeSlot: string;
+  availableBBQs: number;
+};
+
+// Constants for time slots
+export const TIME_SLOTS = ["12-6pm", "6-10pm"] as const;
+export const MAX_BBQS = 10;

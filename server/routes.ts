@@ -140,5 +140,22 @@ export async function registerRoutes(app: Express) {
     res.json(req.user);
   });
 
+  app.get("/api/availability", async (req, res) => {
+    const dateParam = req.query.date as string;
+    if (!dateParam) {
+      res.status(400).json({ error: "Date parameter is required" });
+      return;
+    }
+
+    const date = new Date(dateParam);
+    if (isNaN(date.getTime())) {
+      res.status(400).json({ error: "Invalid date format" });
+      return;
+    }
+
+    const availability = await storage.getAvailability(date);
+    res.json(availability);
+  });
+
   return httpServer;
 }
