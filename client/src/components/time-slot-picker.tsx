@@ -21,8 +21,8 @@ export function TimeSlotPicker({
   selectedSlot,
 }: TimeSlotPickerProps) {
   // Fetch availability data when a date is selected
-  const { data: availability } = useQuery<SlotAvailability[]>({
-    queryKey: ["/api/availability", selectedDate?.toISOString()],
+  const { data: availability, isLoading } = useQuery<SlotAvailability[]>({
+    queryKey: ["/api/availability", { date: selectedDate?.toISOString() }],
     enabled: !!selectedDate,
   });
 
@@ -42,30 +42,34 @@ export function TimeSlotPicker({
       {selectedDate && (
         <Card>
           <CardContent className="pt-6">
-            <RadioGroup
-              value={selectedSlot}
-              onValueChange={onSelectSlot}
-            >
-              <div className="space-y-4">
-                {availability?.map((slot) => (
-                  <div key={slot.timeSlot} className="flex items-center space-x-2">
-                    <RadioGroupItem 
-                      value={slot.timeSlot} 
-                      id={slot.timeSlot}
-                      disabled={slot.availableBBQs <= 0}
-                    />
-                    <Label htmlFor={slot.timeSlot}>
-                      <div className="flex items-center gap-2">
-                        <span>{slot.timeSlot}</span>
-                        <Badge variant={slot.availableBBQs > 0 ? "default" : "destructive"}>
-                          {slot.availableBBQs} BBQs available
-                        </Badge>
-                      </div>
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </RadioGroup>
+            {isLoading ? (
+              <div className="text-center p-4">Loading availability...</div>
+            ) : (
+              <RadioGroup
+                value={selectedSlot}
+                onValueChange={onSelectSlot}
+              >
+                <div className="space-y-4">
+                  {availability?.map((slot) => (
+                    <div key={slot.timeSlot} className="flex items-center space-x-2">
+                      <RadioGroupItem 
+                        value={slot.timeSlot} 
+                        id={slot.timeSlot}
+                        disabled={slot.availableBBQs <= 0}
+                      />
+                      <Label htmlFor={slot.timeSlot}>
+                        <div className="flex items-center gap-2">
+                          <span>{slot.timeSlot}</span>
+                          <Badge variant={slot.availableBBQs > 0 ? "default" : "destructive"}>
+                            {slot.availableBBQs} BBQs available
+                          </Badge>
+                        </div>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </RadioGroup>
+            )}
           </CardContent>
         </Card>
       )}

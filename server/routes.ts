@@ -141,20 +141,28 @@ export async function registerRoutes(app: Express) {
   });
 
   app.get("/api/availability", async (req, res) => {
-    const dateParam = req.query.date as string;
-    if (!dateParam) {
+    const { date } = req.query;
+
+    if (!date) {
       res.status(400).json({ error: "Date parameter is required" });
       return;
     }
 
-    const date = new Date(dateParam);
-    if (isNaN(date.getTime())) {
-      res.status(400).json({ error: "Invalid date format" });
-      return;
-    }
+    try {
+      // Parse the ISO date string
+      const queryDate = new Date(date as string);
+      if (isNaN(queryDate.getTime())) {
+        res.status(400).json({ error: "Invalid date format" });
+        return;
+      }
 
-    const availability = await storage.getAvailability(date);
-    res.json(availability);
+      const availability = await storage.getAvailability(queryDate);
+      console.log(`Availability for ${date}:`, availability);
+      res.json(availability);
+    } catch (error) {
+      console.error("Error getting availability:", error);
+      res.status(500).json({ error: "Failed to get availability" });
+    }
   });
 
   return httpServer;
