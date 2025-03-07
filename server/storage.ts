@@ -49,8 +49,8 @@ export class MemStorage implements IStorage {
     const booking: Booking = { 
       ...insertBooking, 
       id,
-      status: "pending", // Set default status
-      bbqCount: insertBooking.bbqCount || 1 // Ensure bbqCount has a default value
+      status: "pending",
+      bbqCount: 1 // We only have 1 BBQ available
     };
     this.bookings.set(id, booking);
     return booking;
@@ -92,7 +92,8 @@ export class MemStorage implements IStorage {
       return {
         date: date,
         timeSlot,
-        availableBBQs: MAX_BBQS - bookedBBQs
+        availableBBQs: MAX_BBQS - bookedBBQs,
+        isCleaningTime: false // Regular slot
       };
     });
   }

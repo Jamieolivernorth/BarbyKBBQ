@@ -129,13 +129,19 @@ export const PACKAGES = [
   }
 ];
 
+// Update the time slots section
+export const TIME_SLOTS = [
+  "12:00-15:00",  // 12pm - 3pm
+  "16:00-19:00",  // 4pm - 7pm (1hr cleaning window before)
+  "20:00-23:00"   // 8pm - 11pm (1hr cleaning window before)
+] as const;
+
+export const MAX_BBQS = 1; // Currently only 1 BBQ available
+
 // Helper type for availability
 export type SlotAvailability = {
   date: Date;
   timeSlot: string;
   availableBBQs: number;
+  isCleaningTime?: boolean;
 };
-
-// Constants for time slots
-export const TIME_SLOTS = ["12-6pm", "6-10pm"] as const;
-export const MAX_BBQS = 10;

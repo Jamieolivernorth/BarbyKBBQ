@@ -29,6 +29,12 @@ export function TimeSlotPicker({
   // Disable past dates
   const disabledDays = { before: new Date() };
 
+  // Helper function to format time slots nicely
+  const formatTimeSlot = (slot: string) => {
+    const [start, end] = slot.split('-');
+    return `${start} - ${end}`;
+  };
+
   return (
     <div className="space-y-6">
       <Calendar
@@ -59,10 +65,16 @@ export function TimeSlotPicker({
                       />
                       <Label htmlFor={slot.timeSlot}>
                         <div className="flex items-center gap-2">
-                          <span>{slot.timeSlot}</span>
-                          <Badge variant={slot.availableBBQs > 0 ? "default" : "destructive"}>
-                            {slot.availableBBQs} BBQs available
-                          </Badge>
+                          <span>{formatTimeSlot(slot.timeSlot)}</span>
+                          {slot.availableBBQs > 0 ? (
+                            <Badge variant="default">
+                              Available
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">
+                              Booked
+                            </Badge>
+                          )}
                         </div>
                       </Label>
                     </div>
