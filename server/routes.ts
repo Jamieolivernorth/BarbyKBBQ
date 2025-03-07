@@ -132,5 +132,13 @@ export async function registerRoutes(app: Express) {
     res.json(bookings);
   });
 
+  app.get("/api/user", (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+    res.json(req.user);
+  });
+
   return httpServer;
 }

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 type AuthMode = "login" | "register";
 
@@ -36,15 +37,28 @@ export default function Auth() {
         ? insertUserSchema
         : insertUserSchema.pick({ username: true, password: true })
     ),
+    defaultValues: {
+      username: "",
+      password: "",
+      email: "",
+      phone: "",
+    },
   });
 
   const onSubmit = async (data: any) => {
     try {
-      await apiRequest("POST", `/api/${mode}`, data);
+      const response = await apiRequest("POST", `/api/${mode}`, data);
+      const user = await response.json();
+
+      // Update auth state in query client
+      queryClient.setQueryData(["/api/user"], user);
+
       toast({
         title: mode === "register" ? "Registration successful" : "Login successful",
         description: "Welcome to Barby and Ken!",
       });
+
+      // Redirect to booking page
       setLocation("/booking");
     } catch (error: any) {
       toast({

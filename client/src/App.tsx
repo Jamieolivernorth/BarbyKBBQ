@@ -8,15 +8,24 @@ import Booking from "@/pages/booking";
 import Profile from "@/pages/profile";
 import Auth from "@/pages/auth";
 import React from 'react';
+import { useQuery } from "@tanstack/react-query";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
 
   // Check if user is authenticated by making a request
-  const isAuthenticated = queryClient.getQueryData(["/api/user"]);
+  const { data: user } = useQuery({
+    queryKey: ["/api/user"],
+    retry: false,
+  });
 
-  if (!isAuthenticated) {
-    setLocation("/auth");
+  React.useEffect(() => {
+    if (!user) {
+      setLocation("/auth");
+    }
+  }, [user, setLocation]);
+
+  if (!user) {
     return null;
   }
 
