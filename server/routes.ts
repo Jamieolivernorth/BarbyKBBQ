@@ -5,6 +5,8 @@ import { insertUserSchema, insertBookingSchema } from "@shared/schema";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import fetch from 'node-fetch';
+
 
 export async function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -168,6 +170,26 @@ export async function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Error getting availability:", error);
       res.status(500).json({ error: "Failed to get availability" });
+    }
+  });
+
+  // Add weather route
+  app.get("/api/weather/:location", async (req, res) => {
+    try {
+      const location = req.params.location;
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${location},mt&units=metric&appid=${process.env.OPENWEATHERMAP_API_KEY}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Weather API request failed');
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Weather API error:', error);
+      res.status(500).json({ error: 'Failed to fetch weather data' });
     }
   });
 

@@ -2,6 +2,7 @@ import { Location } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { WeatherWidget } from "./weather-widget";
 
 interface LocationSelectorProps {
   locations: Location[];
@@ -41,7 +42,8 @@ export function LocationSelector({
                 />
                 <CardContent className="p-4">
                   <h3 className="font-semibold">{location.name}</h3>
-                  <p className="text-sm text-gray-600">{location.description}</p>
+                  <p className="text-sm text-gray-600 mb-4">{location.description}</p>
+                  <WeatherWidget location={location} />
                 </CardContent>
               </Card>
             </Label>
