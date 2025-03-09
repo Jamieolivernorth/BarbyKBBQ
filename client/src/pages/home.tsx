@@ -15,21 +15,30 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-red-600 text-transparent bg-clip-text">
-            Barby and Ken
-          </h1>
-          <p className="text-xl text-gray-700 mb-8">
-            The best BBQs in Malta, no hassle, just great food and Barby Vibes
-          </p>
-          <Link href="/booking">
-            <Button className="bg-orange-600 hover:bg-orange-700">
-              Book Your BBQ Experience
-            </Button>
-          </Link>
+      {/* Hero Section with Logo */}
+      <div className="bg-black py-16">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center">
+            <img 
+              src="/attached_assets/1.png" 
+              alt="Barby & Ken Logo" 
+              className="h-32 mb-8"
+            />
+            <p className="text-xl text-white mb-8 text-center max-w-2xl">
+              The best BBQs in Malta, no hassle, just great food and Barby Vibes
+            </p>
+            <Link href="/booking">
+              <Button className="bg-[hsl(35,100%,50%)] hover:bg-[hsl(35,100%,45%)] text-black">
+                Book Your BBQ Experience
+              </Button>
+            </Link>
+          </div>
         </div>
+      </div>
 
+      {/* Locations Section */}
+      <div className="container mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold mb-8 text-center">Our Locations</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {locations?.map((location) => (
             <Card key={location.id} className="overflow-hidden">
@@ -47,7 +56,7 @@ export default function Home() {
         </div>
 
         <div className="mt-16 text-center">
-          <h2 className="text-3xl font-bold mb-4">How It Works</h2>
+          <h2 className="text-3xl font-bold mb-8">How It Works</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div>
               <h3 className="text-xl font-semibold mb-2">1. Choose Location</h3>

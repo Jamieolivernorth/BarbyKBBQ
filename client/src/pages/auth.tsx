@@ -71,104 +71,113 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-orange-50 flex items-center justify-center">
-      <Card className="w-[400px]">
-        <CardHeader>
-          <CardTitle>
-            {mode === "register" ? "Create Account" : "Welcome Back"}
-          </CardTitle>
-          <CardDescription>
-            {mode === "register"
-              ? "Sign up to book your BBQ experience"
-              : "Log in to continue your BBQ journey"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+      <div className="w-full max-w-md px-4">
+        <div className="flex justify-center mb-8">
+          <img 
+            src="/attached_assets/1.png" 
+            alt="Barby & Ken Logo" 
+            className="h-24"
+          />
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {mode === "register" ? "Create Account" : "Welcome Back"}
+            </CardTitle>
+            <CardDescription>
+              {mode === "register"
+                ? "Sign up to book your BBQ experience"
+                : "Log in to continue your BBQ journey"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {mode === "register" && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
                 )}
-              />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {mode === "register" && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              <div className="space-y-2">
-                <Button
-                  type="submit"
-                  className="w-full bg-orange-600 hover:bg-orange-700"
-                >
-                  {mode === "register" ? "Sign Up" : "Log In"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() =>
-                    setMode(mode === "register" ? "login" : "register")
-                  }
-                >
-                  {mode === "register"
-                    ? "Already have an account? Log in"
-                    : "Need an account? Sign up"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                <div className="space-y-2">
+                  <Button
+                    type="submit"
+                    className="w-full bg-orange-600 hover:bg-orange-700"
+                  >
+                    {mode === "register" ? "Sign Up" : "Log In"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() =>
+                      setMode(mode === "register" ? "login" : "register")
+                    }
+                  >
+                    {mode === "register"
+                      ? "Already have an account? Log in"
+                      : "Need an account? Sign up"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
