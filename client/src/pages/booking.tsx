@@ -1,19 +1,14 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Location, Package } from "@shared/schema";
 import { LocationSelector } from "@/components/location-selector";
 import { PackageCard } from "@/components/package-card";
-import { TimeSlotPicker } from "@/components/time-slot-picker";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 
 export default function Booking() {
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedSlot, setSelectedSlot] = useState<string>();
-
   const { toast } = useToast();
 
   const { data: locations, isLoading: locationsLoading } = useQuery<Location[]>({
@@ -24,46 +19,39 @@ export default function Booking() {
     queryKey: ["/api/packages"],
   });
 
-  const bookingMutation = useMutation({
-    mutationFn: async (bookingData: any) => {
-      return apiRequest("POST", "/api/bookings", bookingData);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Booking Confirmed!",
-        description: "Your BBQ experience has been booked successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Booking Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
   if (locationsLoading || packagesLoading) {
     return <div>Loading...</div>;
   }
 
-  const handleSubmit = () => {
-    if (!selectedLocation || !selectedPackage || !selectedDate || !selectedSlot) {
+  const handleBooking = () => {
+    if (!selectedLocation || !selectedPackage) {
       toast({
-        title: "Incomplete Booking",
-        description: "Please fill in all required fields",
+        title: "Incomplete Selection",
+        description: "Please select both a location and a package",
         variant: "destructive",
       });
       return;
     }
 
-    bookingMutation.mutate({
-      locationId: selectedLocation,
-      packageId: selectedPackage,
-      date: selectedDate,
-      timeSlot: selectedSlot,
-      userId: 1, // TODO: Get from auth context
-    });
+    const selectedLocationData = locations?.find(loc => loc.id === selectedLocation);
+    const selectedPackageData = packages?.find(pkg => pkg.id === selectedPackage);
+
+    //Handle potential null or undefined values
+    if (!selectedLocationData || !selectedPackageData) {
+        toast({
+          title: "Error",
+          description: "Could not find selected location or package.",
+          variant: "destructive",
+        });
+        return;
+    }
+
+    const message = `Hi! I'd like to book a BBQ at ${selectedLocationData?.name} with the ${selectedPackageData?.name} package. Please help me arrange a suitable time.`;
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`; // Replace with your actual WhatsApp business number
+
+    // Open WhatsApp in a new tab
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
@@ -95,26 +83,13 @@ export default function Booking() {
             </div>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4">Pick Date & Time</h2>
-            <div className="max-w-md">
-              <TimeSlotPicker
-                selectedDate={selectedDate}
-                selectedSlot={selectedSlot}
-                onSelectDate={setSelectedDate}
-                onSelectSlot={setSelectedSlot}
-              />
-            </div>
-          </section>
-
           <div className="text-center">
             <Button
               className="bg-orange-600 hover:bg-orange-700"
               size="lg"
-              onClick={handleSubmit}
-              disabled={bookingMutation.isPending}
+              onClick={handleBooking}
             >
-              {bookingMutation.isPending ? "Booking..." : "Confirm Booking"}
+              Book via WhatsApp
             </Button>
           </div>
         </div>
