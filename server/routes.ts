@@ -143,7 +143,10 @@ export async function registerRoutes(app: Express) {
   app.get("/api/availability", async (req, res) => {
     const { date } = req.query;
 
+    console.log("Availability request received with date:", date);
+
     if (!date) {
+      console.log("No date parameter provided");
       res.status(400).json({ error: "Date parameter is required" });
       return;
     }
@@ -151,7 +154,10 @@ export async function registerRoutes(app: Express) {
     try {
       // Parse the ISO date string
       const queryDate = new Date(date as string);
+      console.log("Parsed date:", queryDate);
+
       if (isNaN(queryDate.getTime())) {
+        console.log("Invalid date format:", date);
         res.status(400).json({ error: "Invalid date format" });
         return;
       }

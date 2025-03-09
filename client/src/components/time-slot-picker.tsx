@@ -25,6 +25,9 @@ export function TimeSlotPicker({
     enabled: !!selectedDate,
   });
 
+  console.log("Selected date:", selectedDate);
+  console.log("Availability data:", availability);
+
   // Disable past dates
   const disabledDays = { before: new Date() };
 
@@ -39,7 +42,10 @@ export function TimeSlotPicker({
       <Calendar
         mode="single"
         selected={selectedDate}
-        onSelect={(date) => date && onSelectDate(date)}
+        onSelect={(date) => {
+          console.log("Calendar date selected:", date);
+          date && onSelectDate(date);
+        }}
         disabled={disabledDays}
         className="rounded-md border"
       />
