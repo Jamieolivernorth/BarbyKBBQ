@@ -89,7 +89,7 @@ export const LOCATIONS = [
     id: 1,
     name: "Golden Bay",
     description: "Beautiful sandy beach perfect for sunset BBQs",
-    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
+    imageUrl: "https://media.istockphoto.com/id/479913374/photo/golden-bay-beach-on-malta.jpg?s=612x612&w=0&k=20&c=0cmOLQ5tmaQP2OFgxtxU-0W12HBMVPsOTDfJHuCM7K4="
   },
   {
     id: 2,
