@@ -101,7 +101,7 @@ export const LOCATIONS = [
     id: 3,
     name: "Mellieħa Bay (Għadira)",
     description: "Malta's largest sandy beach, perfect for families",
-    imageUrl: "https://images.unsplash.com/photo-1473221326025-9183b464bb7e"
+    imageUrl: "https://gayguidemalta.com/wp-content/uploads/2018/05/Mellieha-Bay-Malta.jpg"
   },
   {
     id: 4,
