@@ -5,10 +5,13 @@ import { LocationSelector } from "@/components/location-selector";
 import { PackageCard } from "@/components/package-card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Booking() {
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>();
   const { toast } = useToast();
 
   const { data: locations, isLoading: locationsLoading } = useQuery<Location[]>({
@@ -24,10 +27,10 @@ export default function Booking() {
   }
 
   const handleBooking = () => {
-    if (!selectedLocation || !selectedPackage) {
+    if (!selectedLocation || !selectedPackage || !selectedDate) {
       toast({
         title: "Incomplete Selection",
-        description: "Please select both a location and a package",
+        description: "Please select a location, package, and preferred date",
         variant: "destructive",
       });
       return;
@@ -46,7 +49,14 @@ export default function Booking() {
         return;
     }
 
-    const message = `Hi! I'd like to book a BBQ at ${selectedLocationData?.name} with the ${selectedPackageData?.name} package. Please help me arrange a suitable time.`;
+    const formattedDate = selectedDate.toLocaleDateString('en-GB', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const message = `Hi! I'd like to book a BBQ at ${selectedLocationData?.name} with the ${selectedPackageData?.name} package for ${formattedDate}. Please help me arrange a suitable time.`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`; // Replace with your actual WhatsApp business number
 
@@ -81,6 +91,21 @@ export default function Booking() {
                 />
               ))}
             </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">Choose Preferred Date</h2>
+            <Card>
+              <CardContent className="pt-6">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={{ before: new Date() }}
+                  className="rounded-md border"
+                />
+              </CardContent>
+            </Card>
           </section>
 
           <div className="text-center">
