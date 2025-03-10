@@ -228,26 +228,29 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  // Add assets route
+  // Add assets route with logging
   app.get("/assets/:filename", async (req, res) => {
     try {
       const assetPath = `/assets/${req.params.filename}`;
-      const asset = await storage.getAssetByPath(assetPath);
+      console.log("Requested asset path:", assetPath);
 
-      if (!asset) {
-        res.status(404).json({ error: "Asset not found" });
-        return;
-      }
+      const asset = await storage.getAssetByPath(assetPath);
+      console.log("Found asset in storage:", asset);
 
       // Serve from attached_assets folder
       const filePath = path.join(process.cwd(), "attached_assets", req.params.filename);
+      console.log("Looking for file at:", filePath);
+
       if (!fs.existsSync(filePath)) {
+        console.log("File not found at path:", filePath);
         res.status(404).json({ error: "Asset file not found" });
         return;
       }
 
+      console.log("Serving file from:", filePath);
       res.sendFile(filePath);
     } catch (error) {
+      console.error("Error serving asset:", error);
       res.status(500).json({ error: "Failed to serve asset" });
     }
   });
