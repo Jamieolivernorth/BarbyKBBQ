@@ -113,7 +113,7 @@ export const LOCATIONS = [
     id: 5,
     name: "White Tower Bay",
     description: "Secluded beach with historic watchtower backdrop",
-    imageUrl: "https://images.unsplash.com/photo-1495954484750-af469f2f9be5"
+    imageUrl: "https://lh5.googleusercontent.com/p/AF1QipNXjHC6v0Jt_SpqwGWqKfH322KqTQiVzKMx1mii=s1600"
   },
   {
     id: 6,
