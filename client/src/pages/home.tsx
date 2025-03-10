@@ -20,7 +20,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center">
             <img 
-              src="/attached_assets/1.png" 
+              src="/assets/1.png"
               alt="Barby & Ken Logo" 
               className="h-40 mb-12"
             />

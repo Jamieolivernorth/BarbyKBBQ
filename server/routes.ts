@@ -6,7 +6,8 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import fetch from 'node-fetch';
-
+import path from "path";
+import fs from "fs";
 
 export async function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -224,6 +225,30 @@ export async function registerRoutes(app: Express) {
       res.json(booking);
     } catch (error) {
       res.status(500).json({ error: "Failed to update booking status" });
+    }
+  });
+
+  // Add assets route
+  app.get("/assets/:filename", async (req, res) => {
+    try {
+      const assetPath = `/assets/${req.params.filename}`;
+      const asset = await storage.getAssetByPath(assetPath);
+
+      if (!asset) {
+        res.status(404).json({ error: "Asset not found" });
+        return;
+      }
+
+      // Serve from attached_assets folder
+      const filePath = path.join(process.cwd(), "attached_assets", req.params.filename);
+      if (!fs.existsSync(filePath)) {
+        res.status(404).json({ error: "Asset file not found" });
+        return;
+      }
+
+      res.sendFile(filePath);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to serve asset" });
     }
   });
 

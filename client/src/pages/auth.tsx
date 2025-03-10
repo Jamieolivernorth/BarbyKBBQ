@@ -74,7 +74,7 @@ export default function Auth() {
       <div className="w-full max-w-md px-4">
         <div className="flex justify-center mb-8">
           <img 
-            src="/attached_assets/1.png" 
+            src="/assets/1.png"
             alt="Barby & Ken Logo" 
             className="h-24"
           />

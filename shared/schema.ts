@@ -36,6 +36,15 @@ export const users = pgTable("users", {
   phone: text("phone").notNull(),
 });
 
+// Add assets table at the top with other tables
+export const assets = pgTable("assets", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  path: text("path").notNull().unique(),
+  type: text("type").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Add BookingStatus type and validation
 export const BOOKING_STATUS = [
   "pending",
@@ -83,6 +92,10 @@ export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type Location = typeof locations.$inferSelect;
 export type Package = typeof packages.$inferSelect;
+
+// Add types after other type definitions
+export type Asset = typeof assets.$inferSelect;
+export type InsertAsset = typeof assets.$inferSelect;
 
 export const LOCATIONS = [
   {
@@ -165,6 +178,17 @@ export const PACKAGES = [
     includesAlcohol: true
   }
 ];
+
+// Add default assets to the constants section
+export const DEFAULT_ASSETS = [
+  {
+    id: 1,
+    name: "Barby & Ken Logo",
+    path: "/assets/logo.png",
+    type: "image/png",
+    createdAt: new Date(),
+  },
+] as const;
 
 // Helper type for availability
 export type SlotAvailability = {

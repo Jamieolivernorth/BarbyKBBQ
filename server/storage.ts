@@ -3,6 +3,18 @@ import {
   LOCATIONS, PACKAGES, SlotAvailability, TIME_SLOTS, MAX_BBQS, BookingStatus
 } from "@shared/schema";
 
+interface Asset {
+  path: string;
+  // Add other relevant asset properties here as needed.
+  data: any;
+}
+
+const DEFAULT_ASSETS: Asset[] = [
+  { path: '/path/to/asset1.jpg', data: 'some data' },
+  { path: '/path/to/asset2.png', data: 'some other data' }
+];
+
+
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -14,17 +26,20 @@ export interface IStorage {
   getAvailability(date: Date): Promise<SlotAvailability[]>;
   getAllBookings(): Promise<Booking[]>;
   updateBookingStatus(bookingId: number, status: BookingStatus): Promise<Booking>;
+  getAssetByPath(path: string): Promise<Asset | undefined>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private bookings: Map<number, Booking>;
+  private assets: Map<string, Asset>;
   private currentUserId: number;
   private currentBookingId: number;
 
   constructor() {
     this.users = new Map();
     this.bookings = new Map();
+    this.assets = new Map(DEFAULT_ASSETS.map(asset => [asset.path, asset]));
     this.currentUserId = 1;
     this.currentBookingId = 1;
   }
@@ -113,6 +128,10 @@ export class MemStorage implements IStorage {
     const updatedBooking = { ...booking, status };
     this.bookings.set(bookingId, updatedBooking);
     return updatedBooking;
+  }
+
+  async getAssetByPath(path: string): Promise<Asset | undefined> {
+    return this.assets.get(path);
   }
 }
 
