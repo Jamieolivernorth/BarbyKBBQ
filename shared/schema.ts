@@ -95,7 +95,7 @@ export const LOCATIONS = [
     id: 2,
     name: "Għajn Tuffieħa",
     description: "Scenic red sand beach with crystal clear waters",
-    imageUrl: "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57"
+    imageUrl: "https://media.istockphoto.com/id/1473500985/photo/ghajn-tuffieha-beach-at-sunset-in-the-golden-bay-of-malta.jpg?s=612x612&w=0&k=20&c=IASmqh4iwpYNMJzgLonJsR7jwdFe-jhw5QJX6PfbEsE="
   },
   {
     id: 3,
