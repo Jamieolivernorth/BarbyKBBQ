@@ -9,6 +9,7 @@ import Profile from "@/pages/profile";
 import Auth from "@/pages/auth";
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
+import AdminBookings from "@/pages/admin/bookings"; // Assuming this component exists
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const [, setLocation] = useLocation();
@@ -47,6 +48,11 @@ function Router() {
           <Profile />
         </RequireAuth>
       </Route>
+      <Route path="/admin/bookings"> {/* Added admin route */}
+        <RequireAuth>
+          <AdminBookings />
+        </RequireAuth>
+      </Route> {/* Added admin route */}
       <Route component={NotFound} />
     </Switch>
   );

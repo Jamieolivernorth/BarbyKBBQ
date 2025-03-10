@@ -1,6 +1,6 @@
 import { 
   User, InsertUser, Booking, InsertBooking,
-  LOCATIONS, PACKAGES, SlotAvailability, TIME_SLOTS, MAX_BBQS
+  LOCATIONS, PACKAGES, SlotAvailability, TIME_SLOTS, MAX_BBQS, BookingStatus
 } from "@shared/schema";
 
 export interface IStorage {
@@ -12,6 +12,8 @@ export interface IStorage {
   getLocations(): Promise<typeof LOCATIONS>;
   getPackages(): Promise<typeof PACKAGES>;
   getAvailability(date: Date): Promise<SlotAvailability[]>;
+  getAllBookings(): Promise<Booking[]>;
+  updateBookingStatus(bookingId: number, status: BookingStatus): Promise<Booking>;
 }
 
 export class MemStorage implements IStorage {
@@ -50,7 +52,7 @@ export class MemStorage implements IStorage {
       ...insertBooking, 
       id,
       status: "pending",
-      bbqCount: 1 // We only have 1 BBQ available
+      bbqCount: 1 
     };
     this.bookings.set(id, booking);
     return booking;
@@ -93,9 +95,24 @@ export class MemStorage implements IStorage {
         date: date,
         timeSlot,
         availableBBQs: MAX_BBQS - bookedBBQs,
-        isCleaningTime: false // Regular slot
+        isCleaningTime: false 
       };
     });
+  }
+
+  async getAllBookings(): Promise<Booking[]> {
+    return Array.from(this.bookings.values());
+  }
+
+  async updateBookingStatus(bookingId: number, status: BookingStatus): Promise<Booking> {
+    const booking = this.bookings.get(bookingId);
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
+
+    const updatedBooking = { ...booking, status };
+    this.bookings.set(bookingId, updatedBooking);
+    return updatedBooking;
   }
 }
 

@@ -193,5 +193,39 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Add new admin routes
+  app.get("/api/admin/bookings", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    // TODO: Add admin role check
+    try {
+      const bookings = await storage.getAllBookings();
+      res.json(bookings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch bookings" });
+    }
+  });
+
+  app.patch("/api/admin/bookings/:id", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    // TODO: Add admin role check
+    const { id } = req.params;
+    const { status } = req.body;
+
+    try {
+      const booking = await storage.updateBookingStatus(parseInt(id), status);
+      res.json(booking);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update booking status" });
+    }
+  });
+
   return httpServer;
 }

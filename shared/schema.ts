@@ -36,6 +36,19 @@ export const users = pgTable("users", {
   phone: text("phone").notNull(),
 });
 
+// Add BookingStatus type and validation
+export const BOOKING_STATUS = [
+  "pending",
+  "confirmed",
+  "completed",
+  "cancelled"
+] as const;
+
+export type BookingStatus = typeof BOOKING_STATUS[number];
+
+export const bookingStatusSchema = z.enum(BOOKING_STATUS);
+
+// Update booking schema
 export const bookings = pgTable("bookings", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -45,12 +58,23 @@ export const bookings = pgTable("bookings", {
   timeSlot: text("time_slot").notNull(),
   status: text("status").notNull().default("pending"),
   bbqCount: integer("bbq_count").notNull().default(1),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users);
+export const insertUserSchema = createInsertSchema(users, {
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(8, "Phone number must be at least 8 characters"),
+});
+
+// Update booking types
 export const insertBookingSchema = createInsertSchema(bookings).extend({
   timeSlot: z.enum(TIME_SLOTS),
-  date: z.coerce.date()
+  date: z.coerce.date(),
+  status: bookingStatusSchema.default("pending"),
 });
 
 export type User = typeof users.$inferSelect;
