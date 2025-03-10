@@ -107,7 +107,7 @@ export const LOCATIONS = [
     id: 4,
     name: "Armier Bay & Little Armier",
     description: "Twin bays with shallow waters ideal for BBQ gatherings",
-    imageUrl: "https://images.unsplash.com/photo-1468413253725-0d5181091126"
+    imageUrl: "https://www.rentaboat.com.mt/media/2947/little_armier_bay_41.jpg?crop=0,0,0,0.15072842006855722&cropmode=percentage&width=2000&height=1125"
   },
   {
     id: 5,
