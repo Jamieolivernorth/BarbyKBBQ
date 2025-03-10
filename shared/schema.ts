@@ -119,7 +119,7 @@ export const LOCATIONS = [
     id: 6,
     name: "Sliema & Exiles Beach",
     description: "Urban beach perfect for evening BBQs",
-    imageUrl: "https://images.unsplash.com/photo-1490365728022-deae76380607"
+    imageUrl: "https://cf.bstatic.com/xdata/images/hotel/max1024x768/255632301.jpg?k=57a880758b35004100f305caf91ed60f4193cb3bec3c61ac533ce861d48fbcbc&o=&hp=1"
   }
 ];
 
