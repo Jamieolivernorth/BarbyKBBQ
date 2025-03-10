@@ -10,8 +10,22 @@ interface Asset {
 }
 
 const DEFAULT_ASSETS: Asset[] = [
-  { path: '/path/to/asset1.jpg', data: 'some data' },
-  { path: '/path/to/asset2.png', data: 'some other data' }
+  { 
+    path: '/assets/1.png', 
+    data: { 
+      id: 1,
+      name: "Barby & Ken Logo White",
+      type: "image/png"
+    }
+  },
+  { 
+    path: '/assets/2.png', 
+    data: {
+      id: 2,
+      name: "Barby & Ken Logo Black",
+      type: "image/png"
+    }
+  }
 ];
 
 

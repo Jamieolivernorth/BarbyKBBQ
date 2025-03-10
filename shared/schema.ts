@@ -183,11 +183,18 @@ export const PACKAGES = [
 export const DEFAULT_ASSETS = [
   {
     id: 1,
-    name: "Barby & Ken Logo",
-    path: "/assets/logo.png",
+    name: "Barby & Ken Logo White",
+    path: "/assets/1.png",
     type: "image/png",
     createdAt: new Date(),
   },
+  {
+    id: 2,
+    name: "Barby & Ken Logo Black",
+    path: "/assets/2.png",
+    type: "image/png",
+    createdAt: new Date(),
+  }
 ] as const;
 
 // Helper type for availability
