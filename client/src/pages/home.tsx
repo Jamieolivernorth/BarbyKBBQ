@@ -25,7 +25,7 @@ export default function Home() {
               className="h-40 mb-12"
             />
             <p className="text-2xl text-white mb-12 text-center max-w-2xl font-light">
-              The best BBQs in Malta, no hassle, just great food and Barby Vibes
+              BBQs anytime, anywhere, we deliver, setup and take everything away, you - just enjoy a proper Barby mate!
             </p>
             <Link href="/booking">
               <Button size="lg" className="bg-[hsl(35,100%,50%)] hover:bg-[hsl(35,100%,45%)] text-black font-semibold px-8 py-6 text-lg">
