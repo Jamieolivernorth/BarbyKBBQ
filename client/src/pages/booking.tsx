@@ -9,6 +9,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { AvailabilityDisplay } from "@/components/availability-display";
+import { motion, AnimatePresence } from "framer-motion";
+
+const fadeInOut = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+  transition: { duration: 0.3 }
+};
 
 export default function Booking() {
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
@@ -45,14 +53,13 @@ export default function Booking() {
     const selectedLocationData = locations?.find(loc => loc.id === selectedLocation);
     const selectedPackageData = packages?.find(pkg => pkg.id === selectedPackage);
 
-    //Handle potential null or undefined values
     if (!selectedLocationData || !selectedPackageData) {
-        toast({
-          title: "Error",
-          description: "Could not find selected location or package.",
-          variant: "destructive",
-        });
-        return;
+      toast({
+        title: "Error",
+        description: "Could not find selected location or package.",
+        variant: "destructive",
+      });
+      return;
     }
 
     const formattedDate = selectedDate.toLocaleDateString('en-GB', {
@@ -66,7 +73,6 @@ export default function Booking() {
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`; // Replace with your actual WhatsApp business number
 
-    // Open WhatsApp in a new tab
     window.open(whatsappUrl, '_blank');
   };
 
@@ -85,65 +91,85 @@ export default function Booking() {
         </div>
       )}
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8 text-center">Book Your BBQ Experience</h1>
+        <motion.h1 
+          className="text-3xl font-bold mb-8 text-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Book Your BBQ Experience
+        </motion.h1>
 
         <div className="space-y-12">
-          <section>
-            <h2 className="text-2xl font-semibold mb-4">Choose Location</h2>
-            <LocationSelector
-              locations={locations || []}
-              selectedId={selectedLocation}
-              onSelect={setSelectedLocation}
-            />
-          </section>
+          <AnimatePresence mode="wait">
+            <motion.section {...fadeInOut} key="location-section">
+              <h2 className="text-2xl font-semibold mb-4">Choose Location</h2>
+              <LocationSelector
+                locations={locations || []}
+                selectedId={selectedLocation}
+                onSelect={setSelectedLocation}
+              />
+            </motion.section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4">Select Package</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {packages?.map((pkg) => (
-                <PackageCard
-                  key={pkg.id}
-                  package={pkg}
-                  selected={selectedPackage === pkg.id}
-                  onSelect={() => setSelectedPackage(pkg.id)}
-                />
-              ))}
-            </div>
-          </section>
+            {selectedLocation && (
+              <motion.section {...fadeInOut} key="package-section">
+                <h2 className="text-2xl font-semibold mb-4">Select Package</h2>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {packages?.map((pkg) => (
+                    <PackageCard
+                      key={pkg.id}
+                      package={pkg}
+                      selected={selectedPackage === pkg.id}
+                      onSelect={() => setSelectedPackage(pkg.id)}
+                    />
+                  ))}
+                </div>
+              </motion.section>
+            )}
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4">Choose Preferred Date</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    disabled={{ before: new Date() }}
-                    className="rounded-md border"
-                  />
-                </CardContent>
-              </Card>
+            {selectedPackage && (
+              <motion.section {...fadeInOut} key="date-section">
+                <h2 className="text-2xl font-semibold mb-4">Choose Preferred Date</h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        disabled={{ before: new Date() }}
+                        className="rounded-md border"
+                      />
+                    </CardContent>
+                  </Card>
 
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-4">Real-time Availability</h3>
-                  <AvailabilityDisplay selectedDate={selectedDate} />
-                </CardContent>
-              </Card>
-            </div>
-          </section>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h3 className="font-semibold mb-4">Real-time Availability</h3>
+                      <AvailabilityDisplay selectedDate={selectedDate} />
+                    </CardContent>
+                  </Card>
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
 
-          <div className="text-center">
-            <Button
-              className="bg-orange-600 hover:bg-orange-700"
-              size="lg"
-              onClick={handleBooking}
+          {selectedLocation && selectedPackage && selectedDate && (
+            <motion.div 
+              className="text-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
             >
-              Book via WhatsApp
-            </Button>
-          </div>
+              <Button
+                className="bg-orange-600 hover:bg-orange-700"
+                size="lg"
+                onClick={handleBooking}
+              >
+                Book via WhatsApp
+              </Button>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>
