@@ -69,7 +69,6 @@ export default function BookingPage() {
     }
 
     try {
-      // Create booking data
       const bookingData = {
         locationId: selectedLocation,
         packageId: selectedPackage,
@@ -79,7 +78,7 @@ export default function BookingPage() {
         timeSlot: "09:00-12:00",
         status: "pending",
         paymentStatus: "unpaid",
-        deliveryStatus: "pending"
+        deliveryStatus: "scheduled" 
       };
 
       console.log("Sending booking request with data:", bookingData);
