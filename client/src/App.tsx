@@ -9,6 +9,7 @@ import Profile from "@/pages/profile";
 import Auth from "@/pages/auth";
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
+import AdminDashboard from "@/pages/admin";
 import AdminBookings from "@/pages/admin/bookings";
 
 function RequireAuth({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) {
@@ -51,6 +52,11 @@ function Router() {
       <Route path="/profile">
         <RequireAuth>
           <Profile />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin">
+        <RequireAuth requireAdmin={true}>
+          <AdminDashboard />
         </RequireAuth>
       </Route>
       <Route path="/admin/bookings">
