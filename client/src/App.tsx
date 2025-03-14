@@ -9,12 +9,12 @@ import Profile from "@/pages/profile";
 import Auth from "@/pages/auth";
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
-import AdminBookings from "@/pages/admin/bookings"; // Assuming this component exists
+import AdminBookings from "@/pages/admin/bookings";
 
-function RequireAuth({ children }: { children: React.ReactNode }) {
+function RequireAuth({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) {
   const [, setLocation] = useLocation();
 
-  // Check if user is authenticated by making a request
+  // Check if user is authenticated and has admin rights if required
   const { data: user } = useQuery({
     queryKey: ["/api/user"],
     retry: false,
@@ -23,10 +23,15 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!user) {
       setLocation("/auth");
+      return;
     }
-  }, [user, setLocation]);
 
-  if (!user) {
+    if (requireAdmin && !user.isAdmin) {
+      setLocation("/booking"); // Redirect non-admin users to regular booking page
+    }
+  }, [user, setLocation, requireAdmin]);
+
+  if (!user || (requireAdmin && !user.isAdmin)) {
     return null;
   }
 
@@ -48,11 +53,11 @@ function Router() {
           <Profile />
         </RequireAuth>
       </Route>
-      <Route path="/admin/bookings"> {/* Added admin route */}
-        <RequireAuth>
+      <Route path="/admin/bookings">
+        <RequireAuth requireAdmin={true}>
           <AdminBookings />
         </RequireAuth>
-      </Route> {/* Added admin route */}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

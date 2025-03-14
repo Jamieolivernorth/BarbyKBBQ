@@ -80,7 +80,15 @@ export async function registerRoutes(app: Express) {
         return;
       }
 
-      const user = await storage.createUser(result.data);
+      // For testing purposes, make the first user an admin
+      const userCount = await storage.getUserCount();
+      const isFirstUser = userCount === 0;
+
+      const user = await storage.createUser({
+        ...result.data,
+        isAdmin: isFirstUser, // Make first user admin
+      });
+
       req.login(user, (err) => {
         if (err) {
           res.status(500).json({ error: "Login failed" });
@@ -201,7 +209,12 @@ export async function registerRoutes(app: Express) {
       return;
     }
 
-    // TODO: Add admin role check
+    // Check for admin role
+    if (!(req.user as any).isAdmin) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
     try {
       const bookings = await storage.getAllBookings();
       res.json(bookings);
@@ -216,7 +229,12 @@ export async function registerRoutes(app: Express) {
       return;
     }
 
-    // TODO: Add admin role check
+    // Check for admin role
+    if (!(req.user as any).isAdmin) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
     const { id } = req.params;
     const { status, customerName, customerPhone, timeSlot, date } = req.body;
 

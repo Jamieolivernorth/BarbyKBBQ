@@ -33,6 +33,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getUserCount(): Promise<number>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   getUserBookings(userId: number): Promise<Booking[]>;
   getLocations(): Promise<typeof LOCATIONS>;
@@ -71,11 +72,17 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      isAdmin: insertUser.isAdmin || false
+    };
     this.users.set(id, user);
     return user;
   }
-
+  async getUserCount(): Promise<number> {
+    return this.users.size;
+  }
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
     const id = this.currentBookingId++;
     const booking: Booking = { 

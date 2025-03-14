@@ -28,12 +28,14 @@ export const packages = pgTable("packages", {
   includesAlcohol: boolean("includes_alcohol").default(false),
 });
 
+// Add isAdmin field to users table and schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   email: text("email").notNull(),
   phone: text("phone").notNull(),
+  isAdmin: boolean("is_admin").notNull().default(false),
 });
 
 // Add assets table at the top with other tables
@@ -79,6 +81,7 @@ export const insertUserSchema = createInsertSchema(users, {
   password: z.string().min(6, "Password must be at least 6 characters"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(8, "Phone number must be at least 8 characters"),
+  isAdmin: z.boolean().optional(),
 });
 
 // Update booking types
