@@ -73,7 +73,7 @@ export default function BookingPage() {
       const bookingData = {
         locationId: selectedLocation,
         packageId: selectedPackage,
-        date: selectedDate,
+        date: selectedDate.toISOString(), // Convert date to ISO string
         customerName: user.username,
         customerPhone: user.phone,
         timeSlot: "09:00-12:00",
@@ -85,17 +85,14 @@ export default function BookingPage() {
       console.log("Creating booking with data:", bookingData);
 
       const response = await apiRequest("POST", "/api/bookings", bookingData);
+      const responseData = await response.json();
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create booking");
+        throw new Error(responseData.error || "Failed to create booking");
       }
 
-      const booking = await response.json();
-      console.log("Booking created successfully:", booking);
-
       // Store booking in state and show confirmation
-      setCurrentBooking(booking);
+      setCurrentBooking(responseData);
       setIsBooked(true);
 
       // Format date for WhatsApp message
@@ -106,11 +103,6 @@ export default function BookingPage() {
         day: 'numeric'
       });
 
-      // Prepare WhatsApp message
-      const message = `Hi! I'd like to book a BBQ at ${selectedLocationData.name} with the ${selectedPackageData.name} package for ${formattedDate}. Please help me arrange a suitable time.`;
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`;
-
       // Show success toast
       toast({
         title: "Booking Created Successfully!",
@@ -119,6 +111,11 @@ export default function BookingPage() {
 
       // Refresh bookings data
       await queryClient.invalidateQueries({ queryKey: ["/api/user/bookings"] });
+
+      // Prepare WhatsApp message
+      const message = `Hi! I'd like to book a BBQ at ${selectedLocationData.name} with the ${selectedPackageData.name} package for ${formattedDate}. Please help me arrange a suitable time.`;
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`;
 
       // Delay opening WhatsApp to ensure UI updates
       setTimeout(() => {
