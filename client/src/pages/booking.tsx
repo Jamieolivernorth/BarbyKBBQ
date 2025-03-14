@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { AvailabilityDisplay } from "@/components/availability-display";
 import { ShareBooking } from "@/components/share-booking";
+import { BookingStatus } from "@/components/booking-status";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -77,14 +78,13 @@ export default function Booking() {
         paymentStatus: "unpaid"
       });
 
-      // Create the booking first
       const response = await apiRequest("POST", "/api/bookings", {
         locationId: selectedLocation,
         packageId: selectedPackage,
         date: selectedDate,
         customerName: user.username,
         customerPhone: user.phone,
-        timeSlot: "09:00-12:00", // Default to first slot
+        timeSlot: "09:00-12:00", 
         status: "pending",
         paymentStatus: "unpaid"
       });
@@ -94,7 +94,8 @@ export default function Booking() {
         throw new Error(error.error || "Failed to create booking");
       }
 
-      // After successful booking creation, open WhatsApp
+      const booking = await response.json();
+
       const formattedDate = selectedDate.toLocaleDateString('en-GB', {
         weekday: 'long',
         year: 'numeric',
@@ -225,6 +226,21 @@ export default function Booking() {
                         day: 'numeric'
                       }) || ''}
                       package={packages?.find(pkg => pkg.id === selectedPackage)?.name || ''}
+                    />
+                    <BookingStatus
+                      booking={{
+                        id: booking?.id,
+                        locationId: selectedLocation,
+                        packageId: selectedPackage,
+                        date: selectedDate,
+                        customerName: user?.username || '',
+                        customerPhone: user?.phone || '',
+                        timeSlot: "09:00-12:00",
+                        status: "pending",
+                        paymentStatus: "unpaid",
+                        actualStartTime: null,
+                        actualEndTime: null
+                      }}
                     />
                   </CardContent>
                 </Card>
