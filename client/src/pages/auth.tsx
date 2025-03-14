@@ -47,8 +47,16 @@ export default function Auth() {
 
   const onSubmit = async (data: any) => {
     try {
+      console.log("Submitting auth form:", { mode, data });
       const response = await apiRequest("POST", `/api/${mode}`, data);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Authentication failed");
+      }
+
       const user = await response.json();
+      console.log("Auth response:", user);
 
       // Update auth state in query client
       queryClient.setQueryData(["/api/user"], user);
@@ -61,6 +69,7 @@ export default function Auth() {
       // Redirect to booking page
       setLocation("/booking");
     } catch (error: any) {
+      console.error("Auth error:", error);
       toast({
         title: "Error",
         description: error.message,
