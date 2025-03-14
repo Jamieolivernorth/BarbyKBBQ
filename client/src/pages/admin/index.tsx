@@ -64,6 +64,13 @@ export default function AdminDashboard() {
                   Manage Bookings
                 </Button>
               </Link>
+
+              <Link href="/admin/affiliate">
+                <Button variant="default" className="w-full text-left bg-[#C8913B] hover:bg-[#b17d33]">
+                  Manage Affiliate Links
+                </Button>
+              </Link>
+
               <Link href="/booking">
                 <Button variant="outline" className="w-full text-left">
                   Return to Booking Page
