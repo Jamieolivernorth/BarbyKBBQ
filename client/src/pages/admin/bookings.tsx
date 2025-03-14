@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Booking, BOOKING_STATUS, PAYMENT_STATUS, DELIVERY_STATUS, Location, Package } from "@shared/schema";
+import { Link } from "wouter";
 import {
   Table,
   TableBody,
@@ -123,169 +124,180 @@ export default function AdminBookings() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Booking Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 mb-6">
-            <Input
-              placeholder="Search by name, phone, or location..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-            <Select
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                {BOOKING_STATUS.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+    <div className="min-h-screen bg-orange-50">
+      {/* Admin Header */}
+      <div className="bg-black text-white py-4">
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Booking Management</h1>
+          <Link href="/admin">
+            <Button variant="outline" className="text-white border-white hover:bg-gray-800">
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+      </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Package</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Time Slot</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Delivery</TableHead>
-                <TableHead>Timer</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredBookings?.map((booking) => (
-                <TableRow key={booking.id}>
-                  <TableCell>{booking.id}</TableCell>
-                  <TableCell>{booking.customerName}</TableCell>
-                  <TableCell>{booking.customerPhone}</TableCell>
-                  <TableCell>{getLocationName(booking.locationId)}</TableCell>
-                  <TableCell>{getPackageName(booking.packageId)}</TableCell>
-                  <TableCell>
-                    {format(new Date(booking.date), 'dd/MM/yyyy')}
-                  </TableCell>
-                  <TableCell>{booking.timeSlot}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={booking.paymentStatus}
-                      onValueChange={(value) => {
-                        updateBookingMutation.mutate({
-                          bookingId: booking.id,
-                          data: { paymentStatus: value }
-                        });
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PAYMENT_STATUS.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={booking.deliveryStatus}
-                      onValueChange={(value) => {
-                        updateBookingMutation.mutate({
-                          bookingId: booking.id,
-                          data: { deliveryStatus: value }
-                        });
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DELIVERY_STATUS.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    {booking.actualStartTime ? (
-                      <span className="text-sm">
-                        {getTimeRemaining(booking)}
-                      </span>
-                    ) : (
-                      booking.paymentStatus === "paid" && (
-                        <Button
-                          size="sm"
-                          onClick={() => startBookingTimer(booking.id)}
-                        >
-                          Start Timer
-                        </Button>
-                      )
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={booking.status}
-                      onValueChange={(value) => {
-                        updateBookingMutation.mutate({
-                          bookingId: booking.id,
-                          data: { status: value }
-                        });
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BOOKING_STATUS.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit Booking</DialogTitle>
-                        </DialogHeader>
-                        {/* Add edit form here in next iteration */}
-                      </DialogContent>
-                    </Dialog>
-                  </TableCell>
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent>
+            <div className="flex gap-4 mb-6 mt-6">
+              <Input
+                placeholder="Search by name, phone, or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+              <Select
+                value={statusFilter}
+                onValueChange={setStatusFilter}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {BOOKING_STATUS.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Package</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Time Slot</TableHead>
+                  <TableHead>Payment</TableHead>
+                  <TableHead>Delivery</TableHead>
+                  <TableHead>Timer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {filteredBookings?.map((booking) => (
+                  <TableRow key={booking.id}>
+                    <TableCell>{booking.id}</TableCell>
+                    <TableCell>{booking.customerName}</TableCell>
+                    <TableCell>{booking.customerPhone}</TableCell>
+                    <TableCell>{getLocationName(booking.locationId)}</TableCell>
+                    <TableCell>{getPackageName(booking.packageId)}</TableCell>
+                    <TableCell>
+                      {format(new Date(booking.date), 'dd/MM/yyyy')}
+                    </TableCell>
+                    <TableCell>{booking.timeSlot}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={booking.paymentStatus}
+                        onValueChange={(value) => {
+                          updateBookingMutation.mutate({
+                            bookingId: booking.id,
+                            data: { paymentStatus: value }
+                          });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PAYMENT_STATUS.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={booking.deliveryStatus}
+                        onValueChange={(value) => {
+                          updateBookingMutation.mutate({
+                            bookingId: booking.id,
+                            data: { deliveryStatus: value }
+                          });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DELIVERY_STATUS.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {booking.actualStartTime ? (
+                        <span className="text-sm">
+                          {getTimeRemaining(booking)}
+                        </span>
+                      ) : (
+                        booking.paymentStatus === "paid" && (
+                          <Button
+                            size="sm"
+                            onClick={() => startBookingTimer(booking.id)}
+                          >
+                            Start Timer
+                          </Button>
+                        )
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={booking.status}
+                        onValueChange={(value) => {
+                          updateBookingMutation.mutate({
+                            bookingId: booking.id,
+                            data: { status: value }
+                          });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BOOKING_STATUS.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            Edit
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Edit Booking</DialogTitle>
+                          </DialogHeader>
+                          {/* Add edit form here in next iteration */}
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
