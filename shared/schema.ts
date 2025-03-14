@@ -63,6 +63,8 @@ export const bookings = pgTable("bookings", {
   userId: integer("user_id").notNull(),
   locationId: integer("location_id").notNull(),
   packageId: integer("package_id").notNull(),
+  customerName: text("customer_name").notNull(),
+  customerPhone: text("customer_phone").notNull(),
   date: timestamp("date").notNull(),
   timeSlot: text("time_slot").notNull(),
   status: text("status").notNull().default("pending"),
@@ -84,6 +86,8 @@ export const insertBookingSchema = createInsertSchema(bookings).extend({
   timeSlot: z.enum(TIME_SLOTS),
   date: z.coerce.date(),
   status: bookingStatusSchema.default("pending"),
+  customerName: z.string().min(2, "Name must be at least 2 characters"),
+  customerPhone: z.string().min(8, "Phone number must be at least 8 characters"),
 });
 
 export type User = typeof users.$inferSelect;

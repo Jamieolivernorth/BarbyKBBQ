@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Booking, BOOKING_STATUS, Location, Package } from "@shared/schema";
 import {
   Table,
@@ -17,9 +17,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { format } from "date-fns";
 
 export default function AdminBookings() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,24 +47,26 @@ export default function AdminBookings() {
     queryKey: ["/api/packages"],
   });
 
-  const handleStatusChange = async (bookingId: number, newStatus: string) => {
-    try {
-      await apiRequest("PATCH", `/api/admin/bookings/${bookingId}`, {
-        status: newStatus,
-      });
-      
+  const updateBookingMutation = useMutation({
+    mutationFn: async ({ bookingId, data }: { bookingId: number; data: Partial<Booking> }) => {
+      const response = await apiRequest("PATCH", `/api/admin/bookings/${bookingId}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/bookings"] });
       toast({
-        title: "Status Updated",
-        description: "Booking status has been updated successfully.",
+        title: "Booking Updated",
+        description: "The booking has been updated successfully.",
       });
-    } catch (error: any) {
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
       });
-    }
-  };
+    },
+  });
 
   const getLocationName = (locationId: number) => {
     return locations?.find(loc => loc.id === locationId)?.name || 'Unknown Location';
@@ -67,11 +78,12 @@ export default function AdminBookings() {
 
   const filteredBookings = bookings?.filter(booking => {
     const matchesSearch = 
-      getLocationName(booking.locationId).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getPackageName(booking.packageId).toLowerCase().includes(searchTerm.toLowerCase());
-    
+      booking.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.customerPhone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getLocationName(booking.locationId).toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus = statusFilter === "all" || booking.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -88,7 +100,7 @@ export default function AdminBookings() {
         <CardContent>
           <div className="flex gap-4 mb-6">
             <Input
-              placeholder="Search by location or package..."
+              placeholder="Search by name, phone, or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
@@ -115,9 +127,12 @@ export default function AdminBookings() {
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Phone</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Package</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Time Slot</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -126,15 +141,23 @@ export default function AdminBookings() {
               {filteredBookings?.map((booking) => (
                 <TableRow key={booking.id}>
                   <TableCell>{booking.id}</TableCell>
+                  <TableCell>{booking.customerName}</TableCell>
+                  <TableCell>{booking.customerPhone}</TableCell>
                   <TableCell>{getLocationName(booking.locationId)}</TableCell>
                   <TableCell>{getPackageName(booking.packageId)}</TableCell>
                   <TableCell>
-                    {new Date(booking.date).toLocaleDateString()}
+                    {format(new Date(booking.date), 'dd/MM/yyyy')}
                   </TableCell>
+                  <TableCell>{booking.timeSlot}</TableCell>
                   <TableCell>
                     <Select
                       value={booking.status}
-                      onValueChange={(value) => handleStatusChange(booking.id, value)}
+                      onValueChange={(value) => {
+                        updateBookingMutation.mutate({
+                          bookingId: booking.id,
+                          data: { status: value }
+                        });
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -149,7 +172,19 @@ export default function AdminBookings() {
                     </Select>
                   </TableCell>
                   <TableCell>
-                    {/* Add any additional actions here */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          Edit
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit Booking</DialogTitle>
+                        </DialogHeader>
+                        {/* Add edit form here in next iteration */}
+                      </DialogContent>
+                    </Dialog>
                   </TableCell>
                 </TableRow>
               ))}

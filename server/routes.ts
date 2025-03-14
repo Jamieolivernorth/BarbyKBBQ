@@ -194,7 +194,7 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  // Add new admin routes
+  // Add new admin routes for booking management
   app.get("/api/admin/bookings", async (req, res) => {
     if (!req.user) {
       res.status(401).json({ error: "Not authenticated" });
@@ -218,13 +218,19 @@ export async function registerRoutes(app: Express) {
 
     // TODO: Add admin role check
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, customerName, customerPhone, timeSlot, date } = req.body;
 
     try {
-      const booking = await storage.updateBookingStatus(parseInt(id), status);
+      const booking = await storage.updateBooking(parseInt(id), {
+        status,
+        customerName,
+        customerPhone,
+        timeSlot,
+        date: date ? new Date(date) : undefined
+      });
       res.json(booking);
     } catch (error) {
-      res.status(500).json({ error: "Failed to update booking status" });
+      res.status(500).json({ error: "Failed to update booking" });
     }
   });
 
