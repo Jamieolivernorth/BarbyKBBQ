@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Location, Package } from "@shared/schema";
+import { Location, Package, User } from "@shared/schema";
 import { LocationSelector } from "@/components/location-selector";
 import { PackageCard } from "@/components/package-card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Link } from "wouter";
 import { AvailabilityDisplay } from "@/components/availability-display";
 import { ShareBooking } from "@/components/share-booking";
 import { motion, AnimatePresence } from "framer-motion";
+import { apiRequest } from "@/lib/queryClient";
 
 const fadeInOut = {
   initial: { opacity: 0, y: 20 },
@@ -34,7 +35,7 @@ export default function Booking() {
     queryKey: ["/api/packages"],
   });
 
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<User>({
     queryKey: ["/api/user"],
   });
 
@@ -43,10 +44,10 @@ export default function Booking() {
   }
 
   const handleBooking = async () => {
-    if (!selectedLocation || !selectedPackage || !selectedDate) {
+    if (!selectedLocation || !selectedPackage || !selectedDate || !user) {
       toast({
         title: "Incomplete Selection",
-        description: "Please select a location, package, and preferred date",
+        description: "Please ensure you're logged in and all selections are made",
         variant: "destructive",
       });
       return;
@@ -65,21 +66,32 @@ export default function Booking() {
     }
 
     try {
-      // Create the booking first
-      const bookingData = {
+      console.log("Creating booking with data:", {
         locationId: selectedLocation,
         packageId: selectedPackage,
         date: selectedDate,
-        customerName: user?.username || '',
-        customerPhone: user?.phone || '',
-        timeSlot: "09:00-12:00", // Default to first slot, you might want to add time slot selection
+        customerName: user.username,
+        customerPhone: user.phone,
+        timeSlot: "09:00-12:00",
         status: "pending",
         paymentStatus: "unpaid"
-      };
+      });
 
-      const response = await apiRequest("POST", "/api/bookings", bookingData);
+      // Create the booking first
+      const response = await apiRequest("POST", "/api/bookings", {
+        locationId: selectedLocation,
+        packageId: selectedPackage,
+        date: selectedDate,
+        customerName: user.username,
+        customerPhone: user.phone,
+        timeSlot: "09:00-12:00", // Default to first slot
+        status: "pending",
+        paymentStatus: "unpaid"
+      });
+
       if (!response.ok) {
-        throw new Error("Failed to create booking");
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create booking");
       }
 
       // After successful booking creation, open WhatsApp
@@ -90,7 +102,7 @@ export default function Booking() {
         day: 'numeric'
       });
 
-      const message = `Hi! I'd like to book a BBQ at ${selectedLocationData?.name} with the ${selectedPackageData?.name} package for ${formattedDate}. Please help me arrange a suitable time.`;
+      const message = `Hi! I'd like to book a BBQ at ${selectedLocationData.name} with the ${selectedPackageData.name} package for ${formattedDate}. Please help me arrange a suitable time.`;
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`;
 
@@ -102,10 +114,11 @@ export default function Booking() {
         description: "Your booking is pending confirmation. Please complete the WhatsApp conversation to confirm details.",
       });
 
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Booking error:", error);
       toast({
         title: "Error",
-        description: "Failed to create booking. Please try again.",
+        description: error.message || "Failed to create booking. Please try again.",
         variant: "destructive",
       });
     }
