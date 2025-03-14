@@ -1,36 +1,41 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Booking } from "@shared/schema";
+import { Card, CardContent } from "@/components/ui/card";
+import { UserBookings } from "@/components/user-bookings";
+import { User } from "@shared/schema";
 
 export default function Profile() {
-  const { data: bookings, isLoading } = useQuery<Booking[]>({
-    queryKey: ["/api/users/1/bookings"], // TODO: Get user ID from auth context
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/user"],
   });
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  const { data: balance } = useQuery({
+    queryKey: ["/api/user/balance"],
+  });
 
   return (
     <div className="min-h-screen bg-orange-50 py-12">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8">My Bookings</h1>
+        <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
         <div className="grid gap-6">
-          {bookings?.map((booking) => (
-            <Card key={booking.id}>
-              <CardHeader>
-                <CardTitle>Booking #{booking.id}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-2">
-                  <p>Date: {new Date(booking.date).toLocaleDateString()}</p>
-                  <p>Time Slot: {booking.timeSlot}</p>
-                  <p>Status: {booking.status}</p>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-xl font-semibold">Account Details</h2>
+                  <p className="text-gray-600">Username: {user?.username}</p>
+                  <p className="text-gray-600">Email: {user?.email}</p>
+                  <p className="text-gray-600">Phone: {user?.phone}</p>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <div>
+                  <h2 className="text-xl font-semibold">Account Balance</h2>
+                  <p className="text-2xl font-bold text-[#C8913B]">€{balance?.balance || '0.00'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <UserBookings />
         </div>
       </div>
     </div>
