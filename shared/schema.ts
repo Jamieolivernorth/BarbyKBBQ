@@ -2,14 +2,15 @@ import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Constants for time slots
+// Update the constants at the top
 export const TIME_SLOTS = [
-  "12:00-15:00",  // 12pm - 3pm
-  "16:00-19:00",  // 4pm - 7pm (1hr cleaning window before)
-  "20:00-23:00"   // 8pm - 11pm (1hr cleaning window before)
+  "09:00-12:00",  // Morning slot (includes 1hr delivery)
+  "13:00-16:00",  // Afternoon slot (includes 1hr delivery)
+  "17:00-20:00",  // Evening slot (includes 1hr delivery)
+  "21:00-00:00"   // Night slot (includes 1hr delivery)
 ] as const;
 
-export const MAX_BBQS = 1; // Currently only 1 BBQ available
+export const MAX_BBQS = 5; // We now have 5 BBQs available
 
 // Database tables
 export const locations = pgTable("locations", {
@@ -103,6 +104,15 @@ export type Package = typeof packages.$inferSelect;
 // Add types after other type definitions
 export type Asset = typeof assets.$inferSelect;
 export type InsertAsset = typeof assets.$inferSelect;
+
+// Update the SlotAvailability type
+export type SlotAvailability = {
+  date: Date;
+  timeSlot: string;
+  availableBBQs: number;
+  isCleaningTime?: boolean;
+  nextAvailableSlot?: string; // Add next available slot info
+};
 
 export const LOCATIONS = [
   {
@@ -203,11 +213,3 @@ export const DEFAULT_ASSETS = [
     createdAt: new Date(),
   }
 ] as const;
-
-// Helper type for availability
-export type SlotAvailability = {
-  date: Date;
-  timeSlot: string;
-  availableBBQs: number;
-  isCleaningTime?: boolean;
-};

@@ -124,16 +124,33 @@ export class MemStorage implements IStorage {
     });
 
     // Calculate availability for each time slot
-    return TIME_SLOTS.map(timeSlot => {
+    return TIME_SLOTS.map((timeSlot, index) => {
       const bookedBBQs = dayBookings
         .filter(booking => booking.timeSlot === timeSlot)
         .reduce((total, booking) => total + (booking.bbqCount || 1), 0);
 
+      const availableBBQs = MAX_BBQS - bookedBBQs;
+      let nextAvailableSlot: string | undefined;
+
+      // If current slot is full, find the next available slot
+      if (availableBBQs <= 0) {
+        const nextSlots = TIME_SLOTS.slice(index + 1);
+        nextAvailableSlot = nextSlots.find(slot => {
+          const slotBookings = dayBookings
+            .filter(booking => booking.timeSlot === slot)
+            .reduce((total, booking) => total + (booking.bbqCount || 1), 0);
+          return (MAX_BBQS - slotBookings) > 0;
+        });
+
+        // If no slots available today, we could check tomorrow (left as future enhancement)
+      }
+
       return {
         date: date,
         timeSlot,
-        availableBBQs: MAX_BBQS - bookedBBQs,
-        isCleaningTime: false 
+        availableBBQs,
+        nextAvailableSlot,
+        isCleaningTime: false // Reserved for future use
       };
     });
   }
