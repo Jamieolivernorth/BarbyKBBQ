@@ -70,21 +70,21 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-orange-50 flex items-center justify-center">
+    <div className="min-h-screen bg-black flex items-center justify-center">
       <div className="w-full max-w-md px-4">
         <div className="flex justify-center mb-8">
           <img 
             src="/assets/1.png"
             alt="Barby & Ken Logo" 
-            className="h-24"
+            className="h-32 mb-8"
           />
         </div>
-        <Card>
+        <Card className="bg-black border border-gray-800">
           <CardHeader>
-            <CardTitle>
+            <CardTitle className="text-white">
               {mode === "register" ? "Create Account" : "Welcome Back"}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-400">
               {mode === "register"
                 ? "Sign up to book your BBQ experience"
                 : "Log in to continue your BBQ journey"}
@@ -98,9 +98,9 @@ export default function Auth() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Username</FormLabel>
+                      <FormLabel className="text-white">Username</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} className="bg-gray-900 border-gray-700 text-white" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -112,9 +112,9 @@ export default function Auth() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel className="text-white">Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <Input type="password" {...field} className="bg-gray-900 border-gray-700 text-white" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -128,9 +128,9 @@ export default function Auth() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel className="text-white">Email</FormLabel>
                           <FormControl>
-                            <Input type="email" {...field} />
+                            <Input type="email" {...field} className="bg-gray-900 border-gray-700 text-white" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -142,9 +142,9 @@ export default function Auth() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone</FormLabel>
+                          <FormLabel className="text-white">Phone</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} className="bg-gray-900 border-gray-700 text-white" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -163,7 +163,7 @@ export default function Auth() {
                   <Button
                     type="button"
                     variant="ghost"
-                    className="w-full"
+                    className="w-full text-gray-400 hover:text-white hover:bg-gray-800"
                     onClick={() =>
                       setMode(mode === "register" ? "login" : "register")
                     }
