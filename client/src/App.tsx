@@ -11,6 +11,7 @@ import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import AdminDashboard from "@/pages/admin";
 import AdminBookings from "@/pages/admin/bookings";
+import AdminAffiliate from "@/pages/admin/affiliate";
 
 function RequireAuth({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) {
   const [, setLocation] = useLocation();
@@ -62,6 +63,11 @@ function Router() {
       <Route path="/admin/bookings">
         <RequireAuth requireAdmin={true}>
           <AdminBookings />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/affiliate">
+        <RequireAuth requireAdmin={true}>
+          <AdminAffiliate />
         </RequireAuth>
       </Route>
       <Route component={NotFound} />
