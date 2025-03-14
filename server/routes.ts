@@ -252,6 +252,31 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Add this new route after the other admin routes
+  app.patch("/api/admin/users/:id", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    // Only super admin (first user) can make others admin
+    const adminUser = await storage.getUser((req.user as any).id);
+    if (!adminUser?.isAdmin) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
+    const { id } = req.params;
+    const { isAdmin } = req.body;
+
+    try {
+      const updatedUser = await storage.updateUser(parseInt(id), { isAdmin });
+      res.json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
   // Add assets route with logging
   app.get("/assets/:filename", async (req, res) => {
     try {

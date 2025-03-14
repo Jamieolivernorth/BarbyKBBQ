@@ -43,6 +43,7 @@ export interface IStorage {
   updateBookingStatus(bookingId: number, status: BookingStatus): Promise<Booking>;
   getAssetByPath(path: string): Promise<Asset | undefined>;
   updateBooking(bookingId: number, data: Partial<Booking>): Promise<Booking>;
+  updateUser(userId: number, data: Partial<User>): Promise<User>;
 }
 
 export class MemStorage implements IStorage {
@@ -164,6 +165,16 @@ export class MemStorage implements IStorage {
     const updatedBooking = { ...booking, ...data };
     this.bookings.set(bookingId, updatedBooking);
     return updatedBooking;
+  }
+  async updateUser(userId: number, data: Partial<User>): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const updatedUser = { ...user, ...data };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
 }
 

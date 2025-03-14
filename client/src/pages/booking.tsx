@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "wouter";
 
 export default function Booking() {
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
@@ -20,6 +21,10 @@ export default function Booking() {
 
   const { data: packages, isLoading: packagesLoading } = useQuery<Package[]>({
     queryKey: ["/api/packages"],
+  });
+
+  const { data: user } = useQuery({
+    queryKey: ["/api/user"],
   });
 
   if (locationsLoading || packagesLoading) {
@@ -66,6 +71,18 @@ export default function Booking() {
 
   return (
     <div className="min-h-screen bg-orange-50 py-12">
+      {user?.isAdmin && (
+        <div className="bg-orange-600 text-white py-2 px-4 mb-4">
+          <div className="container mx-auto flex justify-between items-center">
+            <span className="font-semibold">Admin Access</span>
+            <Link href="/admin">
+              <Button variant="outline" className="text-white border-white hover:bg-orange-700">
+                Admin Dashboard
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8 text-center">Book Your BBQ Experience</h1>
 
