@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Location, Package, User, Booking } from "@shared/schema";
+import { Location, Package, User, Booking as BookingType } from "@shared/schema";
 import { LocationSelector } from "@/components/location-selector";
 import { PackageCard } from "@/components/package-card";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,12 @@ const fadeInOut = {
   transition: { duration: 0.3 }
 };
 
-export default function Booking() {
+export default function BookingPage() {
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [isBooked, setIsBooked] = useState(false);
-  const [currentBooking, setCurrentBooking] = useState<Booking | null>(null);
+  const [currentBooking, setCurrentBooking] = useState<BookingType | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -94,7 +94,7 @@ export default function Booking() {
       const booking = await response.json();
       console.log("Booking created successfully:", booking);
 
-      // Set states immediately after successful booking
+      // Store booking in state and show confirmation
       setCurrentBooking(booking);
       setIsBooked(true);
 
@@ -120,7 +120,7 @@ export default function Booking() {
       // Refresh bookings data
       await queryClient.invalidateQueries({ queryKey: ["/api/user/bookings"] });
 
-      // Open WhatsApp after a longer delay to ensure UI updates
+      // Delay opening WhatsApp to ensure UI updates
       setTimeout(() => {
         window.open(whatsappUrl, '_blank');
       }, 2000);
@@ -213,6 +213,23 @@ export default function Booking() {
                     </div>
                   </motion.section>
                 )}
+
+                {selectedLocation && selectedPackage && selectedDate && !isBooked && (
+                  <motion.div 
+                    className="text-center"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Button
+                      className="bg-orange-600 hover:bg-orange-700"
+                      size="lg"
+                      onClick={handleBooking}
+                    >
+                      Book via WhatsApp
+                    </Button>
+                  </motion.div>
+                )}
               </>
             ) : (
               <motion.div
@@ -256,23 +273,6 @@ export default function Booking() {
               </motion.div>
             )}
           </AnimatePresence>
-
-          {selectedLocation && selectedPackage && selectedDate && !isBooked && (
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Button
-                className="bg-orange-600 hover:bg-orange-700"
-                size="lg"
-                onClick={handleBooking}
-              >
-                Book via WhatsApp
-              </Button>
-            </motion.div>
-          )}
         </div>
       </div>
     </div>
