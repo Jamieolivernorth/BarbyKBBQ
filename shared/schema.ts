@@ -48,7 +48,7 @@ export const assets = pgTable("assets", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Add BookingStatus type and validation
+// Update the BookingStatus type and validation
 export const BOOKING_STATUS = [
   "pending",
   "confirmed",
@@ -56,9 +56,26 @@ export const BOOKING_STATUS = [
   "cancelled"
 ] as const;
 
+export const PAYMENT_STATUS = [
+  "unpaid",
+  "paid",
+  "refunded"
+] as const;
+
+export const DELIVERY_STATUS = [
+  "scheduled",
+  "in_transit",
+  "delivered",
+  "collected"
+] as const;
+
 export type BookingStatus = typeof BOOKING_STATUS[number];
+export type PaymentStatus = typeof PAYMENT_STATUS[number];
+export type DeliveryStatus = typeof DELIVERY_STATUS[number];
 
 export const bookingStatusSchema = z.enum(BOOKING_STATUS);
+export const paymentStatusSchema = z.enum(PAYMENT_STATUS);
+export const deliveryStatusSchema = z.enum(DELIVERY_STATUS);
 
 // Update booking schema
 export const bookings = pgTable("bookings", {
@@ -71,7 +88,11 @@ export const bookings = pgTable("bookings", {
   date: timestamp("date").notNull(),
   timeSlot: text("time_slot").notNull(),
   status: text("status").notNull().default("pending"),
+  paymentStatus: text("payment_status").notNull().default("unpaid"),
+  deliveryStatus: text("delivery_status").notNull().default("scheduled"),
   bbqCount: integer("bbq_count").notNull().default(1),
+  actualStartTime: timestamp("actual_start_time"),
+  actualEndTime: timestamp("actual_end_time"),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -85,11 +106,13 @@ export const insertUserSchema = createInsertSchema(users, {
   isAdmin: z.boolean().optional(),
 });
 
-// Update booking types
+// Update the booking types
 export const insertBookingSchema = createInsertSchema(bookings).extend({
   timeSlot: z.enum(TIME_SLOTS),
   date: z.coerce.date(),
   status: bookingStatusSchema.default("pending"),
+  paymentStatus: paymentStatusSchema.default("unpaid"),
+  deliveryStatus: deliveryStatusSchema.default("scheduled"),
   customerName: z.string().min(2, "Name must be at least 2 characters"),
   customerPhone: z.string().min(8, "Phone number must be at least 8 characters"),
 });

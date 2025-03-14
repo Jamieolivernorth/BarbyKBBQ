@@ -267,6 +267,7 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Update the PATCH endpoint for admin bookings
   app.patch("/api/admin/bookings/:id", async (req, res) => {
     if (!req.user) {
       res.status(401).json({ error: "Not authenticated" });
@@ -280,23 +281,42 @@ export async function registerRoutes(app: Express) {
     }
 
     const { id } = req.params;
-    const { status, customerName, customerPhone, timeSlot, date } = req.body;
+    const { 
+      status, 
+      paymentStatus, 
+      deliveryStatus,
+      customerName, 
+      customerPhone, 
+      timeSlot, 
+      date,
+      actualStartTime,
+      actualEndTime
+    } = req.body;
 
     try {
       const booking = await storage.updateBooking(parseInt(id), {
         status,
+        paymentStatus,
+        deliveryStatus,
         customerName,
         customerPhone,
         timeSlot,
-        date: date ? new Date(date) : undefined
+        date: date ? new Date(date) : undefined,
+        actualStartTime: actualStartTime ? new Date(actualStartTime) : undefined,
+        actualEndTime: actualEndTime ? new Date(actualEndTime) : undefined
       });
+
+      // Notify clients about availability change if status affects availability
+      if (status === "cancelled" || status === "completed") {
+        await notifyAvailabilityChange();
+      }
+
       res.json(booking);
     } catch (error) {
       res.status(500).json({ error: "Failed to update booking" });
     }
   });
 
-  // Add this new route after the other admin routes
   app.patch("/api/admin/users/:id", async (req, res) => {
     if (!req.user) {
       res.status(401).json({ error: "Not authenticated" });

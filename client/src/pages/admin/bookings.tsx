@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Booking, BOOKING_STATUS, Location, Package } from "@shared/schema";
+import { Booking, BOOKING_STATUS, PAYMENT_STATUS, DELIVERY_STATUS, Location, Package } from "@shared/schema";
 import {
   Table,
   TableBody,
@@ -68,12 +68,43 @@ export default function AdminBookings() {
     },
   });
 
+  const startBookingTimer = async (bookingId: number) => {
+    try {
+      const now = new Date();
+      await updateBookingMutation.mutateAsync({
+        bookingId,
+        data: {
+          actualStartTime: now,
+          actualEndTime: new Date(now.getTime() + (3 * 60 * 60 * 1000)), // 3 hours from now
+          deliveryStatus: "delivered",
+          status: "confirmed"
+        }
+      });
+    } catch (error) {
+      console.error("Failed to start booking timer:", error);
+    }
+  };
+
   const getLocationName = (locationId: number) => {
     return locations?.find(loc => loc.id === locationId)?.name || 'Unknown Location';
   };
 
   const getPackageName = (packageId: number) => {
     return packages?.find(pkg => pkg.id === packageId)?.name || 'Unknown Package';
+  };
+
+  const getTimeRemaining = (booking: Booking) => {
+    if (!booking.actualStartTime || !booking.actualEndTime) return null;
+
+    const now = new Date();
+    const end = new Date(booking.actualEndTime);
+    const remaining = end.getTime() - now.getTime();
+
+    if (remaining <= 0) return "Completed";
+
+    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m remaining`;
   };
 
   const filteredBookings = bookings?.filter(booking => {
@@ -133,6 +164,9 @@ export default function AdminBookings() {
                 <TableHead>Package</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Time Slot</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead>Delivery</TableHead>
+                <TableHead>Timer</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -149,6 +183,66 @@ export default function AdminBookings() {
                     {format(new Date(booking.date), 'dd/MM/yyyy')}
                   </TableCell>
                   <TableCell>{booking.timeSlot}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={booking.paymentStatus}
+                      onValueChange={(value) => {
+                        updateBookingMutation.mutate({
+                          bookingId: booking.id,
+                          data: { paymentStatus: value }
+                        });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PAYMENT_STATUS.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={booking.deliveryStatus}
+                      onValueChange={(value) => {
+                        updateBookingMutation.mutate({
+                          bookingId: booking.id,
+                          data: { deliveryStatus: value }
+                        });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DELIVERY_STATUS.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    {booking.actualStartTime ? (
+                      <span className="text-sm">
+                        {getTimeRemaining(booking)}
+                      </span>
+                    ) : (
+                      booking.paymentStatus === "paid" && (
+                        <Button
+                          size="sm"
+                          onClick={() => startBookingTimer(booking.id)}
+                        >
+                          Start Timer
+                        </Button>
+                      )
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Select
                       value={booking.status}
