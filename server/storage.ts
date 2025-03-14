@@ -29,6 +29,41 @@ const DEFAULT_ASSETS: Asset[] = [
 ];
 
 
+interface InsertAffiliateLink {
+  userId: number;
+  link: string;
+  description?: string;
+}
+
+interface AffiliateLink {
+  id: number;
+  userId: number;
+  link: string;
+  description?: string;
+  totalClicks: number;
+  totalCommission: string;
+  createdAt: Date;
+  isActive: boolean;
+}
+
+interface InsertCommissionTransaction {
+  affiliateLinkId: number;
+  bookingId: number;
+  amount: string;
+  userId: number;
+}
+
+interface CommissionTransaction {
+  id: number;
+  affiliateLinkId: number;
+  bookingId: number;
+  amount: string;
+  userId: number;
+  status: "pending" | "processed";
+  createdAt: Date;
+  processedAt?: Date;
+}
+
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -44,6 +79,21 @@ export interface IStorage {
   getAssetByPath(path: string): Promise<Asset | undefined>;
   updateBooking(bookingId: number, data: Partial<Booking>): Promise<Booking>;
   updateUser(userId: number, data: Partial<User>): Promise<User>;
+
+  // Affiliate methods
+  createAffiliateLink(link: InsertAffiliateLink): Promise<AffiliateLink>;
+  getAllAffiliateLinks(): Promise<AffiliateLink[]>;
+  getAffiliateLink(id: number): Promise<AffiliateLink | undefined>;
+  updateAffiliateLink(id: number, data: Partial<AffiliateLink>): Promise<AffiliateLink>;
+  trackAffiliateLinkClick(id: number): Promise<void>;
+
+  // Commission methods
+  createCommissionTransaction(transaction: InsertCommissionTransaction): Promise<CommissionTransaction>;
+  processCommissionTransaction(id: number): Promise<CommissionTransaction>;
+
+  // Balance methods
+  getUserBalance(userId: number): Promise<number>;
+  updateUserBalance(userId: number, amount: number): Promise<User>;
 }
 
 export class MemStorage implements IStorage {
@@ -52,6 +102,10 @@ export class MemStorage implements IStorage {
   private assets: Map<string, Asset>;
   private currentUserId: number;
   private currentBookingId: number;
+  private affiliateLinks: Map<number, AffiliateLink>;
+  private commissionTransactions: Map<number, CommissionTransaction>;
+  private currentAffiliateLinkId: number;
+  private currentTransactionId: number;
 
   constructor() {
     this.users = new Map();
@@ -59,6 +113,10 @@ export class MemStorage implements IStorage {
     this.assets = new Map(DEFAULT_ASSETS.map(asset => [asset.path, asset]));
     this.currentUserId = 1;
     this.currentBookingId = 1;
+    this.affiliateLinks = new Map();
+    this.commissionTransactions = new Map();
+    this.currentAffiliateLinkId = 1;
+    this.currentTransactionId = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -190,6 +248,94 @@ export class MemStorage implements IStorage {
     }
 
     const updatedUser = { ...user, ...data };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+
+  // Implement affiliate methods
+  async createAffiliateLink(link: InsertAffiliateLink): Promise<AffiliateLink> {
+    const id = this.currentAffiliateLinkId++;
+    const newLink: AffiliateLink = {
+      ...link,
+      id,
+      totalClicks: 0,
+      totalCommission: "0",
+      createdAt: new Date(),
+      isActive: true,
+    };
+    this.affiliateLinks.set(id, newLink);
+    return newLink;
+  }
+
+  async getAllAffiliateLinks(): Promise<AffiliateLink[]> {
+    return Array.from(this.affiliateLinks.values());
+  }
+
+  async getAffiliateLink(id: number): Promise<AffiliateLink | undefined> {
+    return this.affiliateLinks.get(id);
+  }
+
+  async updateAffiliateLink(id: number, data: Partial<AffiliateLink>): Promise<AffiliateLink> {
+    const link = this.affiliateLinks.get(id);
+    if (!link) {
+      throw new Error("Affiliate link not found");
+    }
+    const updatedLink = { ...link, ...data };
+    this.affiliateLinks.set(id, updatedLink);
+    return updatedLink;
+  }
+
+  async trackAffiliateLinkClick(id: number): Promise<void> {
+    const link = await this.getAffiliateLink(id);
+    if (link) {
+      await this.updateAffiliateLink(id, {
+        totalClicks: link.totalClicks + 1
+      });
+    }
+  }
+
+  // Implement commission methods
+  async createCommissionTransaction(transaction: InsertCommissionTransaction): Promise<CommissionTransaction> {
+    const id = this.currentTransactionId++;
+    const newTransaction: CommissionTransaction = {
+      ...transaction,
+      id,
+      status: "pending",
+      createdAt: new Date(),
+    };
+    this.commissionTransactions.set(id, newTransaction);
+    return newTransaction;
+  }
+
+  async processCommissionTransaction(id: number): Promise<CommissionTransaction> {
+    const transaction = this.commissionTransactions.get(id);
+    if (!transaction) {
+      throw new Error("Transaction not found");
+    }
+    const updatedTransaction = {
+      ...transaction,
+      status: "processed",
+      processedAt: new Date(),
+    };
+    this.commissionTransactions.set(id, updatedTransaction);
+    return updatedTransaction;
+  }
+
+  // Update user balance methods
+  async getUserBalance(userId: number): Promise<number> {
+    const user = await this.getUser(userId);
+    return user ? Number(user.balance) : 0;
+  }
+
+  async updateUserBalance(userId: number, amount: number): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const updatedUser = {
+      ...user,
+      balance: (Number(user.balance) + amount).toString(),
+    };
     this.users.set(userId, updatedUser);
     return updatedUser;
   }

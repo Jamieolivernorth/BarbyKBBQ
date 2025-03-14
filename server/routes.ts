@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertBookingSchema } from "@shared/schema";
+import { insertUserSchema, insertBookingSchema, insertAffiliateLinkSchema } from "@shared/schema"; // Added import
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -281,13 +281,13 @@ export async function registerRoutes(app: Express) {
     }
 
     const { id } = req.params;
-    const { 
-      status, 
-      paymentStatus, 
+    const {
+      status,
+      paymentStatus,
       deliveryStatus,
-      customerName, 
-      customerPhone, 
-      timeSlot, 
+      customerName,
+      customerPhone,
+      timeSlot,
       date,
       actualStartTime,
       actualEndTime
@@ -365,6 +365,70 @@ export async function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Error serving asset:", error);
       res.status(500).json({ error: "Failed to serve asset" });
+    }
+  });
+
+
+  // Add affiliate management routes
+  app.get("/api/admin/affiliate-links", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    if (!(req.user as any).isAdmin) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
+    try {
+      const links = await storage.getAllAffiliateLinks();
+      res.json(links);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch affiliate links" });
+    }
+  });
+
+  app.post("/api/admin/affiliate-links", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    if (!(req.user as any).isAdmin) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
+    try {
+      const result = insertAffiliateLinkSchema.safeParse(req.body);
+      if (!result.success) {
+        res.status(400).json({ error: "Invalid affiliate link data" });
+        return;
+      }
+
+      const link = await storage.createAffiliateLink({
+        ...result.data,
+        userId: (req.user as any).id,
+      });
+      res.json(link);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create affiliate link" });
+    }
+  });
+
+  // Update the user balance display route
+  app.get("/api/user/balance", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    try {
+      const user = await storage.getUser((req.user as any).id);
+      res.json({ balance: user?.balance || 0 });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch user balance" });
     }
   });
 

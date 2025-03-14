@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -29,7 +29,7 @@ export const packages = pgTable("packages", {
   includesAlcohol: boolean("includes_alcohol").default(false),
 });
 
-// Add isAdmin field to users table and schema
+// Add balance field to users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -37,6 +37,7 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   phone: text("phone").notNull(),
   isAdmin: boolean("is_admin").notNull().default(false),
+  balance: decimal("balance").notNull().default("0"),
 });
 
 // Add assets table at the top with other tables
@@ -47,6 +48,30 @@ export const assets = pgTable("assets", {
   type: text("type").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Add affiliate links table
+export const affiliateLinks = pgTable("affiliate_links", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  customUrl: text("custom_url").notNull().unique(),
+  commissionRate: decimal("commission_rate").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  isActive: boolean("is_active").notNull().default(true),
+  totalClicks: integer("total_clicks").notNull().default(0),
+  totalCommission: decimal("total_commission").notNull().default("0"),
+});
+
+// Add commission transactions table
+export const commissionTransactions = pgTable("commission_transactions", {
+  id: serial("id").primaryKey(),
+  affiliateLinkId: integer("affiliate_link_id").notNull(),
+  bookingId: integer("booking_id").notNull(),
+  amount: decimal("amount").notNull(),
+  status: text("status").notNull().default("pending"),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 
 // Update the BookingStatus type and validation
 export const BOOKING_STATUS = [
@@ -96,6 +121,8 @@ export const bookings = pgTable("bookings", {
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  affiliateLinkId: integer("affiliate_link_id"),
+  commissionPaid: boolean("commission_paid").notNull().default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users, {
@@ -124,9 +151,22 @@ export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type Location = typeof locations.$inferSelect;
 export type Package = typeof packages.$inferSelect;
 
+// Add types for the new schemas
+export type AffiliateLink = typeof affiliateLinks.$inferSelect;
+export type InsertAffiliateLink = typeof affiliateLinks.$inferInsert;
+
+export type CommissionTransaction = typeof commissionTransactions.$inferSelect;
+export type InsertCommissionTransaction = typeof commissionTransactions.$inferInsert;
+
 // Add types after other type definitions
 export type Asset = typeof assets.$inferSelect;
 export type InsertAsset = typeof assets.$inferSelect;
+
+// Add validation schemas
+export const insertAffiliateLinkSchema = createInsertSchema(affiliateLinks, {
+  customUrl: z.string().min(3, "Custom URL must be at least 3 characters"),
+  commissionRate: z.number().min(0).max(100, "Commission rate must be between 0 and 100"),
+});
 
 // Update the SlotAvailability type
 export type SlotAvailability = {
