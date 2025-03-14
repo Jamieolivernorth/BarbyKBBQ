@@ -73,7 +73,7 @@ export default function BookingPage() {
       const bookingData = {
         locationId: selectedLocation,
         packageId: selectedPackage,
-        date: selectedDate.toISOString(), // Convert date to ISO string
+        date: selectedDate.toISOString(),
         customerName: user.username,
         customerPhone: user.phone,
         timeSlot: "09:00-12:00",
@@ -82,16 +82,19 @@ export default function BookingPage() {
         deliveryStatus: "pending"
       };
 
-      console.log("Creating booking with data:", bookingData);
+      console.log("Sending booking request with data:", bookingData);
 
       const response = await apiRequest("POST", "/api/bookings", bookingData);
       const responseData = await response.json();
 
       if (!response.ok) {
+        console.error("Booking error response:", responseData);
         throw new Error(responseData.error || "Failed to create booking");
       }
 
-      // Store booking in state and show confirmation
+      console.log("Booking created successfully:", responseData);
+
+      // Set states first before any other operations
       setCurrentBooking(responseData);
       setIsBooked(true);
 
@@ -106,18 +109,17 @@ export default function BookingPage() {
       // Show success toast
       toast({
         title: "Booking Created Successfully!",
-        description: "Your booking is confirmed. WhatsApp will open in a moment to finalize details.",
+        description: "Your booking has been created. WhatsApp will open shortly to finalize details.",
       });
 
-      // Refresh bookings data
+      // Refresh the bookings list
       await queryClient.invalidateQueries({ queryKey: ["/api/user/bookings"] });
 
-      // Prepare WhatsApp message
+      // Prepare and open WhatsApp after a delay
       const message = `Hi! I'd like to book a BBQ at ${selectedLocationData.name} with the ${selectedPackageData.name} package for ${formattedDate}. Please help me arrange a suitable time.`;
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`;
 
-      // Delay opening WhatsApp to ensure UI updates
       setTimeout(() => {
         window.open(whatsappUrl, '_blank');
       }, 2000);

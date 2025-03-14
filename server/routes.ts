@@ -1,59 +1,16 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertBookingSchema, insertAffiliateLinkSchema } from "@shared/schema"; // Added import
+import { insertUserSchema, insertBookingSchema, insertAffiliateLinkSchema } from "@shared/schema";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import fetch from 'node-fetch';
 import path from "path";
 import fs from "fs";
-import { WebSocketServer } from 'ws';
 
 export async function registerRoutes(app: Express) {
   const httpServer = createServer(app);
-
-  // Initialize WebSocket server
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-
-  wss.on('connection', (ws) => {
-    console.log('Client connected to availability tracker');
-
-    // Send initial availability data
-    const sendAvailability = async () => {
-      if (ws.readyState === ws.OPEN) {
-        const today = new Date();
-        const availability = await storage.getAvailability(today);
-        ws.send(JSON.stringify({
-          type: 'availability_update',
-          data: availability
-        }));
-      }
-    };
-
-    // Send availability data every minute
-    sendAvailability();
-    const intervalId = setInterval(sendAvailability, 60000);
-
-    ws.on('close', () => {
-      clearInterval(intervalId);
-    });
-  });
-
-  // Notify all clients when a booking is made or updated
-  const notifyAvailabilityChange = async () => {
-    const today = new Date();
-    const availability = await storage.getAvailability(today);
-
-    wss.clients.forEach((client) => {
-      if (client.readyState === client.OPEN) {
-        client.send(JSON.stringify({
-          type: 'availability_update',
-          data: availability
-        }));
-      }
-    });
-  };
 
   // Setup session middleware
   app.use(
@@ -76,7 +33,7 @@ export async function registerRoutes(app: Express) {
         if (!user) {
           return done(null, false, { message: "Incorrect username." });
         }
-        if (user.password !== password) { // In production, use proper password hashing
+        if (user.password !== password) {
           return done(null, false, { message: "Incorrect password." });
         }
         return done(null, user);
@@ -96,6 +53,36 @@ export async function registerRoutes(app: Express) {
       done(null, user);
     } catch (err) {
       done(err);
+    }
+  });
+
+  app.post("/api/bookings", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    try {
+      const booking = {
+        ...req.body,
+        userId: (req.user as any).id,
+      };
+
+      console.log("Received booking data:", booking);
+
+      const result = insertBookingSchema.safeParse(booking);
+      if (!result.success) {
+        console.log("Validation error:", result.error);
+        res.status(400).json({ error: "Invalid booking data", details: result.error });
+        return;
+      }
+
+      const newBooking = await storage.createBooking(result.data);
+      console.log("Created booking:", newBooking);
+      res.json(newBooking);
+    } catch (error) {
+      console.error("Booking creation error:", error);
+      res.status(500).json({ error: "Failed to create booking" });
     }
   });
 
@@ -154,28 +141,6 @@ export async function registerRoutes(app: Express) {
     });
   });
 
-  app.post("/api/bookings", async (req, res) => {
-    if (!req.user) {
-      res.status(401).json({ error: "Not authenticated" });
-      return;
-    }
-
-    const booking = {
-      ...req.body,
-      userId: (req.user as any).id,
-      date: new Date(req.body.date),
-    };
-
-    const result = insertBookingSchema.safeParse(booking);
-    if (!result.success) {
-      res.status(400).json({ error: "Invalid booking data", details: result.error });
-      return;
-    }
-
-    const newBooking = await storage.createBooking(result.data);
-    await notifyAvailabilityChange(); // Notify after successful booking
-    res.json(newBooking);
-  });
 
   app.get("/api/user/bookings", async (req, res) => {
     if (!req.user) {
@@ -308,7 +273,8 @@ export async function registerRoutes(app: Express) {
 
       // Notify clients about availability change if status affects availability
       if (status === "cancelled" || status === "completed") {
-        await notifyAvailabilityChange();
+        //This function is removed in this edit
+        //await notifyAvailabilityChange();
       }
 
       res.json(booking);
