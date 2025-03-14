@@ -8,9 +8,52 @@ import { Strategy as LocalStrategy } from "passport-local";
 import fetch from 'node-fetch';
 import path from "path";
 import fs from "fs";
+import { WebSocketServer } from 'ws';
 
 export async function registerRoutes(app: Express) {
   const httpServer = createServer(app);
+
+  // Initialize WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+  wss.on('connection', (ws) => {
+    console.log('Client connected to availability tracker');
+
+    // Send initial availability data
+    const sendAvailability = async () => {
+      if (ws.readyState === ws.OPEN) {
+        const today = new Date();
+        const availability = await storage.getAvailability(today);
+        ws.send(JSON.stringify({
+          type: 'availability_update',
+          data: availability
+        }));
+      }
+    };
+
+    // Send availability data every minute
+    sendAvailability();
+    const intervalId = setInterval(sendAvailability, 60000);
+
+    ws.on('close', () => {
+      clearInterval(intervalId);
+    });
+  });
+
+  // Notify all clients when a booking is made or updated
+  const notifyAvailabilityChange = async () => {
+    const today = new Date();
+    const availability = await storage.getAvailability(today);
+
+    wss.clients.forEach((client) => {
+      if (client.readyState === client.OPEN) {
+        client.send(JSON.stringify({
+          type: 'availability_update',
+          data: availability
+        }));
+      }
+    });
+  };
 
   // Setup session middleware
   app.use(
@@ -130,6 +173,7 @@ export async function registerRoutes(app: Express) {
     }
 
     const newBooking = await storage.createBooking(result.data);
+    await notifyAvailabilityChange(); // Notify after successful booking
     res.json(newBooking);
   });
 

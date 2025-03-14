@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
+import { AvailabilityDisplay } from "@/components/availability-display";
 
 export default function Booking() {
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
@@ -112,17 +113,26 @@ export default function Booking() {
 
           <section>
             <h2 className="text-2xl font-semibold mb-4">Choose Preferred Date</h2>
-            <Card>
-              <CardContent className="pt-6">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  disabled={{ before: new Date() }}
-                  className="rounded-md border"
-                />
-              </CardContent>
-            </Card>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardContent className="pt-6">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={{ before: new Date() }}
+                    className="rounded-md border"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="font-semibold mb-4">Real-time Availability</h3>
+                  <AvailabilityDisplay selectedDate={selectedDate} />
+                </CardContent>
+              </Card>
+            </div>
           </section>
 
           <div className="text-center">
