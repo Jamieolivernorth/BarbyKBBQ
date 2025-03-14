@@ -9,7 +9,7 @@ interface ShareBookingProps {
 }
 
 export function ShareBooking({ location, date, package: pkg }: ShareBookingProps) {
-  const shareText = `I just booked a BBQ experience with Barby & Ken at ${location} on ${date}! Can't wait to enjoy the ${pkg} package! 🔥🍖`;
+  const shareText = `I just booked a BBQ experience with Barby & Ken at ${location} on ${date}! Who wants to join my party? 🎉\nBook your own Barby here: ${window.location.origin}/booking and have Ken set it up for you! 🔥🍖`;
   const encodedText = encodeURIComponent(shareText);
 
   const shareUrls = {
@@ -50,7 +50,7 @@ export function ShareBooking({ location, date, package: pkg }: ShareBookingProps
       >
         Share Booking
       </Button>
-      
+
       <div className="grid grid-cols-3 gap-4">
         <Button
           variant="outline"
@@ -59,7 +59,7 @@ export function ShareBooking({ location, date, package: pkg }: ShareBookingProps
         >
           <FaWhatsapp className="w-5 h-5 text-green-600" />
         </Button>
-        
+
         <Button
           variant="outline"
           onClick={() => window.open(shareUrls.facebook, '_blank')}
@@ -67,7 +67,7 @@ export function ShareBooking({ location, date, package: pkg }: ShareBookingProps
         >
           <FaFacebook className="w-5 h-5 text-blue-600" />
         </Button>
-        
+
         <Button
           variant="outline"
           onClick={() => window.open(shareUrls.twitter, '_blank')}
