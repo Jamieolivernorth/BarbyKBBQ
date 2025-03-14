@@ -42,7 +42,7 @@ export default function Booking() {
     return <div>Loading...</div>;
   }
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!selectedLocation || !selectedPackage || !selectedDate) {
       toast({
         title: "Incomplete Selection",
@@ -64,19 +64,51 @@ export default function Booking() {
       return;
     }
 
-    const formattedDate = selectedDate.toLocaleDateString('en-GB', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    try {
+      // Create the booking first
+      const bookingData = {
+        locationId: selectedLocation,
+        packageId: selectedPackage,
+        date: selectedDate,
+        customerName: user?.username || '',
+        customerPhone: user?.phone || '',
+        timeSlot: "09:00-12:00", // Default to first slot, you might want to add time slot selection
+        status: "pending",
+        paymentStatus: "unpaid"
+      };
 
-    const message = `Hi! I'd like to book a BBQ at ${selectedLocationData?.name} with the ${selectedPackageData?.name} package for ${formattedDate}. Please help me arrange a suitable time.`;
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`;
+      const response = await apiRequest("POST", "/api/bookings", bookingData);
+      if (!response.ok) {
+        throw new Error("Failed to create booking");
+      }
 
-    window.open(whatsappUrl, '_blank');
-    setIsBooked(true);
+      // After successful booking creation, open WhatsApp
+      const formattedDate = selectedDate.toLocaleDateString('en-GB', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      const message = `Hi! I'd like to book a BBQ at ${selectedLocationData?.name} with the ${selectedPackageData?.name} package for ${formattedDate}. Please help me arrange a suitable time.`;
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`;
+
+      window.open(whatsappUrl, '_blank');
+      setIsBooked(true);
+
+      toast({
+        title: "Booking Created",
+        description: "Your booking is pending confirmation. Please complete the WhatsApp conversation to confirm details.",
+      });
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create booking. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
