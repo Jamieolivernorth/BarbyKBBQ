@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Location, Package, User } from "@shared/schema";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Location, Package, User, Booking } from "@shared/schema";
 import { LocationSelector } from "@/components/location-selector";
 import { PackageCard } from "@/components/package-card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,9 @@ export default function Booking() {
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [isBooked, setIsBooked] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState<Booking | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: locations, isLoading: locationsLoading } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
@@ -67,7 +69,8 @@ export default function Booking() {
     }
 
     try {
-      console.log("Creating booking with data:", {
+      // Create booking data
+      const bookingData = {
         locationId: selectedLocation,
         packageId: selectedPackage,
         date: selectedDate,
@@ -75,19 +78,13 @@ export default function Booking() {
         customerPhone: user.phone,
         timeSlot: "09:00-12:00",
         status: "pending",
-        paymentStatus: "unpaid"
-      });
+        paymentStatus: "unpaid",
+        deliveryStatus: "pending"
+      };
 
-      const response = await apiRequest("POST", "/api/bookings", {
-        locationId: selectedLocation,
-        packageId: selectedPackage,
-        date: selectedDate,
-        customerName: user.username,
-        customerPhone: user.phone,
-        timeSlot: "09:00-12:00", 
-        status: "pending",
-        paymentStatus: "unpaid"
-      });
+      console.log("Creating booking with data:", bookingData);
+
+      const response = await apiRequest("POST", "/api/bookings", bookingData);
 
       if (!response.ok) {
         const error = await response.json();
@@ -95,7 +92,13 @@ export default function Booking() {
       }
 
       const booking = await response.json();
+      console.log("Booking created successfully:", booking);
 
+      // Set states immediately after successful booking
+      setCurrentBooking(booking);
+      setIsBooked(true);
+
+      // Format date for WhatsApp message
       const formattedDate = selectedDate.toLocaleDateString('en-GB', {
         weekday: 'long',
         year: 'numeric',
@@ -103,17 +106,24 @@ export default function Booking() {
         day: 'numeric'
       });
 
+      // Prepare WhatsApp message
       const message = `Hi! I'd like to book a BBQ at ${selectedLocationData.name} with the ${selectedPackageData.name} package for ${formattedDate}. Please help me arrange a suitable time.`;
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`;
 
-      window.open(whatsappUrl, '_blank');
-      setIsBooked(true);
-
+      // Show success toast
       toast({
-        title: "Booking Created",
-        description: "Your booking is pending confirmation. Please complete the WhatsApp conversation to confirm details.",
+        title: "Booking Created Successfully!",
+        description: "Your booking is confirmed. WhatsApp will open in a moment to finalize details.",
       });
+
+      // Refresh bookings data
+      await queryClient.invalidateQueries({ queryKey: ["/api/user/bookings"] });
+
+      // Open WhatsApp after a longer delay to ensure UI updates
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 2000);
 
     } catch (error: any) {
       console.error("Booking error:", error);
@@ -211,37 +221,36 @@ export default function Booking() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="max-w-md mx-auto"
               >
-                <Card>
+                <Card className="shadow-lg">
                   <CardContent className="pt-6 space-y-6">
                     <div className="text-center">
-                      <h2 className="text-2xl font-bold text-green-600 mb-2">Booking Initiated!</h2>
-                      <p className="text-gray-600 mb-6">Share your BBQ plans with friends and family!</p>
+                      <h2 className="text-2xl font-bold text-green-600 mb-2">Booking Confirmed!</h2>
+                      <p className="text-gray-600 mb-6">
+                        Your booking has been created successfully! WhatsApp will open shortly to finalize the details.
+                      </p>
                     </div>
-                    <ShareBooking
-                      location={locations?.find(loc => loc.id === selectedLocation)?.name || ''}
-                      date={selectedDate?.toLocaleDateString('en-GB', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      }) || ''}
-                      package={packages?.find(pkg => pkg.id === selectedPackage)?.name || ''}
-                    />
-                    <BookingStatus
-                      booking={{
-                        id: booking?.id,
-                        locationId: selectedLocation,
-                        packageId: selectedPackage,
-                        date: selectedDate,
-                        customerName: user?.username || '',
-                        customerPhone: user?.phone || '',
-                        timeSlot: "09:00-12:00",
-                        status: "pending",
-                        paymentStatus: "unpaid",
-                        actualStartTime: null,
-                        actualEndTime: null
-                      }}
-                    />
+                    {currentBooking && (
+                      <>
+                        <ShareBooking
+                          location={locations?.find(loc => loc.id === currentBooking.locationId)?.name || ''}
+                          date={new Date(currentBooking.date).toLocaleDateString('en-GB', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                          package={packages?.find(pkg => pkg.id === currentBooking.packageId)?.name || ''}
+                        />
+                        <BookingStatus booking={currentBooking} />
+                      </>
+                    )}
+                    <div className="text-center mt-4">
+                      <Link href="/profile">
+                        <Button variant="outline" className="mr-2">
+                          View My Bookings
+                        </Button>
+                      </Link>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>

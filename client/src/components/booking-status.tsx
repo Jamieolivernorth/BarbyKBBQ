@@ -11,12 +11,15 @@ export function BookingStatus({ booking }: BookingStatusProps) {
 
   useEffect(() => {
     const updateStatus = () => {
-      if (!booking.actualStartTime || !booking.actualEndTime) return;
-
       const now = new Date();
-      const startTime = new Date(booking.actualStartTime);
-      const endTime = new Date(booking.actualEndTime);
-      
+      const bookingDate = new Date(booking.date);
+
+      // Set start and end times based on the booking date
+      const startTime = new Date(bookingDate);
+      startTime.setHours(9, 0, 0); // 09:00
+      const endTime = new Date(bookingDate);
+      endTime.setHours(12, 0, 0); // 12:00
+
       // 30 minutes in milliseconds
       const thirtyMinutes = 30 * 60 * 1000;
 
