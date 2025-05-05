@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Booking, BOOKING_STATUS, PAYMENT_STATUS, DELIVERY_STATUS, Location, Package } from "@shared/schema";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   Table,
   TableBody,
@@ -36,6 +36,20 @@ export default function AdminBookings() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [cleanupFilter, setCleanupFilter] = useState<string>("all");
   const { toast } = useToast();
+  const [location] = useLocation();
+  
+  // Check for URL parameters on mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const cleanupParam = searchParams.get('cleanup');
+    
+    if (cleanupParam) {
+      // Valid values: with-cleanup, without-cleanup
+      if (cleanupParam === 'with-cleanup' || cleanupParam === 'without-cleanup') {
+        setCleanupFilter(cleanupParam);
+      }
+    }
+  }, [location]);
 
   const { data: bookings, isLoading: bookingsLoading } = useQuery<Booking[]>({
     queryKey: ["/api/admin/bookings"],
@@ -134,7 +148,17 @@ export default function AdminBookings() {
       {/* Admin Header */}
       <div className="bg-black text-white py-4">
         <div className="container mx-auto px-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Booking Management</h1>
+          <div>
+            <h1 className="text-2xl font-bold">Booking Management</h1>
+            {cleanupFilter === "with-cleanup" && (
+              <div className="mt-1 text-green-400 text-sm flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Showing bookings with beach cleanup contributions
+              </div>
+            )}
+          </div>
           <Link href="/admin">
             <Button variant="outline" className="text-white border-white hover:bg-gray-800">
               Back to Dashboard

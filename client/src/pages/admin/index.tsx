@@ -13,6 +13,14 @@ export default function AdminDashboard() {
   const totalBookings = bookings?.length || 0;
   const pendingBookings = bookings?.filter(b => b.status === "pending").length || 0;
   const confirmedBookings = bookings?.filter(b => b.status === "confirmed").length || 0;
+  
+  // Calculate beach cleanup contribution statistics
+  const cleanupBookings = bookings?.filter(b => b.cleanupContribution) || [];
+  const totalCleanupContributions = cleanupBookings.length;
+  const totalCleanupAmount = cleanupBookings.reduce((sum, booking) => {
+    const amount = booking.cleanupAmount ? parseFloat(booking.cleanupAmount) : 0;
+    return sum + amount;
+  }, 0).toFixed(2);
 
   return (
     <div className="min-h-screen bg-orange-50">
@@ -51,6 +59,44 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+        
+        {/* Beach Cleanup Stats */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <Card className="bg-green-50 border-green-100">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-green-700 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                Beach Cleanup Contributions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex justify-between">
+              <div>
+                <p className="text-sm text-green-600 mb-1">Total Contributions</p>
+                <p className="text-3xl font-bold text-green-700">{totalCleanupContributions}</p>
+              </div>
+              <div>
+                <p className="text-sm text-green-600 mb-1">Total Amount</p>
+                <p className="text-3xl font-bold text-green-700">€{totalCleanupAmount}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-gray-500">Contribution Rate</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-blue-600">
+                {totalBookings > 0 
+                  ? `${((totalCleanupContributions / totalBookings) * 100).toFixed(1)}%` 
+                  : '0%'}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">of all bookings include cleanup contribution</p>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Quick Actions */}
         <Card>
@@ -68,6 +114,12 @@ export default function AdminDashboard() {
               <Link href="/admin/affiliate">
                 <Button variant="default" className="w-full text-left bg-[#C8913B] hover:bg-[#b17d33]">
                   Manage Affiliate Links
+                </Button>
+              </Link>
+              
+              <Link href="/admin/bookings?cleanup=with-cleanup">
+                <Button variant="default" className="w-full text-left bg-green-600 hover:bg-green-700">
+                  View Cleanup Contributions
                 </Button>
               </Link>
 
