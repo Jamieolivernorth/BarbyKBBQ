@@ -54,6 +54,20 @@ export function BookingStatus({ booking }: BookingStatusProps) {
         <div className="text-center">
           <h3 className="text-xl font-semibold mb-2">Booking Status</h3>
           <p className="text-lg text-[#C8913B]">{statusMessage}</p>
+          
+          {booking.cleanupContribution && (
+            <div className="mt-4 px-3 py-2 bg-green-50 rounded-md">
+              <p className="text-sm text-green-700 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Beach Cleanup Contribution: €{booking.cleanupAmount}
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                Thank you for helping keep Malta's beaches clean!
+              </p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

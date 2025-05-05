@@ -27,6 +27,7 @@ export default function BookingPage() {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [isBooked, setIsBooked] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<BookingType | null>(null);
+  const [cleanupContribution, setCleanupContribution] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -78,7 +79,9 @@ export default function BookingPage() {
         timeSlot: "09:00-12:00",
         status: "pending",
         paymentStatus: "unpaid",
-        deliveryStatus: "scheduled" 
+        deliveryStatus: "scheduled",
+        cleanupContribution: cleanupContribution,
+        cleanupAmount: "5.00" 
       };
 
       console.log("Sending booking request with data:", bookingData);
@@ -213,20 +216,52 @@ export default function BookingPage() {
                 )}
 
                 {selectedLocation && selectedPackage && selectedDate && !isBooked && (
-                  <motion.div 
-                    className="text-center"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Button
-                      className="bg-orange-600 hover:bg-orange-700"
-                      size="lg"
-                      onClick={handleBooking}
+                  <motion.section {...fadeInOut} key="cleanup-contribution-section">
+                    <Card className="max-w-md mx-auto mb-6">
+                      <CardContent className="pt-6">
+                        <div className="flex items-start space-x-3 p-2">
+                          <div className="flex items-center h-5 mt-1">
+                            <input
+                              type="checkbox"
+                              checked={cleanupContribution}
+                              onChange={(e) => setCleanupContribution(e.target.checked)}
+                              className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-medium text-gray-900">One-click Beach Cleanup Contribution</h3>
+                            <p className="text-sm text-gray-500">
+                              Add €5.00 to your booking to contribute to local beach cleanup efforts. 
+                              100% of this amount goes directly to community-led initiatives that keep Malta's 
+                              beaches clean and safe for everyone.
+                            </p>
+                            {cleanupContribution && (
+                              <div className="mt-2 p-2 bg-green-50 rounded-md">
+                                <p className="text-sm text-green-700">
+                                  Thank you for your contribution to keep our beaches clean! 🌊
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  
+                    <motion.div 
+                      className="text-center"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
                     >
-                      Book via WhatsApp
-                    </Button>
-                  </motion.div>
+                      <Button
+                        className="bg-orange-600 hover:bg-orange-700"
+                        size="lg"
+                        onClick={handleBooking}
+                      >
+                        Book via WhatsApp
+                      </Button>
+                    </motion.div>
+                  </motion.section>
                 )}
               </>
             ) : (

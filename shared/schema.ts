@@ -123,6 +123,8 @@ export const bookings = pgTable("bookings", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   affiliateLinkId: integer("affiliate_link_id"),
   commissionPaid: boolean("commission_paid").notNull().default(false),
+  cleanupContribution: boolean("cleanup_contribution").notNull().default(false),
+  cleanupAmount: decimal("cleanup_amount").default("5.00"),
 });
 
 export const insertUserSchema = createInsertSchema(users, {
