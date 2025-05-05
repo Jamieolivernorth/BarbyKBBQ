@@ -42,6 +42,17 @@ export function UserBookings() {
               <p>Time Slot: {booking.timeSlot}</p>
               <p>Status: {booking.status}</p>
               <p>Payment: {booking.paymentStatus}</p>
+              
+              {booking.cleanupContribution && (
+                <div className="mt-2 px-3 py-2 bg-green-50 rounded-md">
+                  <p className="text-sm text-green-700 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Beach Cleanup Contribution: €{booking.cleanupAmount}
+                  </p>
+                </div>
+              )}
             </div>
             <BookingStatus booking={booking} />
           </CardContent>

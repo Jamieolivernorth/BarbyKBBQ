@@ -118,7 +118,15 @@ export default function BookingPage() {
       await queryClient.invalidateQueries({ queryKey: ["/api/user/bookings"] });
 
       // Prepare and open WhatsApp after a delay
-      const message = `Hi! I'd like to book a BBQ at ${selectedLocationData.name} with the ${selectedPackageData.name} package for ${formattedDate}. Please help me arrange a suitable time.`;
+      let message = `Hi! I'd like to book a BBQ at ${selectedLocationData.name} with the ${selectedPackageData.name} package for ${formattedDate}.`;
+      
+      // Add cleanup contribution information if selected
+      if (cleanupContribution) {
+        message += ` I've also added a €5.00 beach cleanup contribution to my booking.`;
+      }
+      
+      message += ` Please help me arrange a suitable time.`;
+      
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/+35679000000?text=${encodedMessage}`;
 
@@ -275,9 +283,22 @@ export default function BookingPage() {
                   <CardContent className="pt-6 space-y-6">
                     <div className="text-center">
                       <h2 className="text-2xl font-bold text-green-600 mb-2">Booking Confirmed!</h2>
-                      <p className="text-gray-600 mb-6">
+                      <p className="text-gray-600 mb-4">
                         Your booking has been created successfully! WhatsApp will open shortly to finalize the details.
                       </p>
+                      {currentBooking?.cleanupContribution && (
+                        <div className="bg-green-50 p-3 rounded-md mb-4">
+                          <p className="text-green-700 text-sm flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Thank you for your €5.00 beach cleanup contribution!
+                          </p>
+                          <p className="text-xs text-green-600 text-center mt-1">
+                            Your support helps keep Malta's beaches beautiful
+                          </p>
+                        </div>
+                      )}
                     </div>
                     {currentBooking && (
                       <>

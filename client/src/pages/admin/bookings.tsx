@@ -34,6 +34,7 @@ import { format } from "date-fns";
 export default function AdminBookings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [cleanupFilter, setCleanupFilter] = useState<string>("all");
   const { toast } = useToast();
 
   const { data: bookings, isLoading: bookingsLoading } = useQuery<Booking[]>({
@@ -115,8 +116,13 @@ export default function AdminBookings() {
       getLocationName(booking.locationId).toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === "all" || booking.status === statusFilter;
+    
+    const matchesCleanup = 
+      cleanupFilter === "all" || 
+      (cleanupFilter === "with-cleanup" && booking.cleanupContribution) || 
+      (cleanupFilter === "without-cleanup" && !booking.cleanupContribution);
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesCleanup;
   });
 
   if (bookingsLoading) {
@@ -163,6 +169,19 @@ export default function AdminBookings() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select
+                value={cleanupFilter}
+                onValueChange={setCleanupFilter}
+              >
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Filter by cleanup contribution" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Bookings</SelectItem>
+                  <SelectItem value="with-cleanup">With Cleanup Contribution</SelectItem>
+                  <SelectItem value="without-cleanup">Without Cleanup Contribution</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <Table>
@@ -179,6 +198,7 @@ export default function AdminBookings() {
                   <TableHead>Delivery</TableHead>
                   <TableHead>Timer</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Cleanup</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -275,6 +295,20 @@ export default function AdminBookings() {
                           ))}
                         </SelectContent>
                       </Select>
+                    </TableCell>
+                    <TableCell>
+                      {booking.cleanupContribution ? (
+                        <div className="flex items-center">
+                          <span className="flex items-center text-green-600 font-medium text-xs">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            €{booking.cleanupAmount}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs">None</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Dialog>
