@@ -1,70 +1,59 @@
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
-// Initialize the OpenAI client with the API key
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+const MODEL = "gpt-4o";
+
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error("OPENAI_API_KEY must be set in environment variables");
+}
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /**
  * Get BBQ recommendations based on user preferences
  */
-export async function getBBQRecommendations(
-  preferences: {
-    location?: string;
-    groupSize?: number;
-    occasion?: string;
-    dietary?: string[];
-    budget?: string;
-  }
-): Promise<any> {
+export async function getBBQRecommendations(preferences: any): Promise<any> {
   try {
-    const messages = [
+    const prompt = `
+      You are an AI assistant for a beach BBQ rental service in Malta called "Barby and Ken". 
+      Based on the following preferences, create personalized BBQ package recommendations.
+      
+      Customer Preferences:
+      - Location preference: ${preferences.location || "Not specified"}
+      - Group size: ${preferences.groupSize || "Not specified"}
+      - Occasion: ${preferences.occasion || "Not specified"}
+      - Dietary requirements: ${preferences.dietary?.join(", ") || "None"}
+      - Budget range: ${preferences.budget || "Not specified"}
+      
+      Please provide 2-3 detailed recommendations in JSON format with the following structure:
       {
-        role: "system",
-        content: `You are a BBQ expert assistant for Barby & Ken, a premium BBQ delivery service in Malta. 
-        Provide personalized BBQ package recommendations based on user preferences.
-        Format your response as JSON with the following structure:
-        {
-          "recommendations": [
-            {
-              "package": "Package name",
-              "description": "Brief description",
-              "price": "Price in EUR",
-              "ideal_for": "Best suited for",
-              "highlights": ["feature 1", "feature 2", "..."]
-            }
-          ],
-          "suggested_location": "Recommended beach location",
-          "time_suggestion": "Recommended time slot",
-          "additional_tips": "Any helpful tips"
-        }`
-      },
-      {
-        role: "user", 
-        content: `Help me plan a BBQ experience in Malta with these preferences: 
-          ${preferences.location ? `Location preference: ${preferences.location}` : ''}
-          ${preferences.groupSize ? `Group size: ${preferences.groupSize} people` : ''}
-          ${preferences.occasion ? `Occasion: ${preferences.occasion}` : ''}
-          ${preferences.dietary && preferences.dietary.length > 0 ? `Dietary requirements: ${preferences.dietary.join(', ')}` : ''}
-          ${preferences.budget ? `Budget: ${preferences.budget}` : ''}
-        `
+        "recommendations": [
+          {
+            "package": "Package name",
+            "description": "Brief description",
+            "price": "Price range in Euros",
+            "ideal_for": "What type of group/occasion",
+            "highlights": ["Feature 1", "Feature 2", "Feature 3"]
+          }
+        ],
+        "suggested_location": "Best beach location in Malta based on preferences",
+        "time_suggestion": "Recommended time of day for the BBQ",
+        "additional_tips": "Any extra tips for enhancing the BBQ experience"
       }
-    ];
+      
+      Ensure the packages are realistic for a beach BBQ service, considering equipment transport, setup, and beach environment.
+    `;
 
-    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: messages as any,
+      model: MODEL,
+      messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
-      temperature: 0.7
     });
 
-    // Parse and return the JSON response
-    const content = response.choices[0].message.content;
-    return content ? JSON.parse(content) : null;
+    return JSON.parse(response.choices[0].message.content);
   } catch (error) {
-    console.error('Error getting BBQ recommendations:', error);
-    throw error;
+    console.error("Error getting BBQ recommendations:", error);
+    throw new Error("Failed to generate BBQ recommendations");
   }
 }
 
@@ -73,49 +62,60 @@ export async function getBBQRecommendations(
  */
 export async function generateCustomMenu(preferences: any): Promise<any> {
   try {
-    const messages = [
+    const prompt = `
+      You are a professional BBQ chef for a beach BBQ service in Malta called "Barby and Ken".
+      Create a customized BBQ menu based on the following preferences:
+      
+      - Number of guests: ${preferences.guests || "Not specified"}
+      - Dietary restrictions: ${preferences.dietary_restrictions || "None"}
+      - Cuisine style preference: ${preferences.cuisine_style || "Traditional BBQ"}
+      - Favorite foods: ${preferences.favorite_foods || "Not specified"}
+      - BBQ type: ${preferences.bbq_type || "Standard"}
+      - Special requests: ${preferences.special_requests || "None"}
+      
+      Generate a detailed menu in JSON format with the following structure:
       {
-        role: "system",
-        content: `You are a culinary expert specializing in BBQ meals. 
-        Create a customized BBQ menu based on the user's preferences.
-        Format your response as JSON with the following structure:
-        {
-          "menu": [
-            {
-              "category": "category name",
-              "items": [
-                {
-                  "name": "Item name",
-                  "description": "Brief description",
-                  "dietaryInfo": ["info1", "info2"]
-                }
-              ]
-            }
-          ],
-          "estimated_cost_per_person": "Cost in EUR",
-          "preparation_tips": "Brief tips for preparation"
-        }`
-      },
-      {
-        role: "user", 
-        content: `Create a BBQ menu for my event with these preferences: ${JSON.stringify(preferences)}`
+        "menu": [
+          {
+            "category": "Starters/Appetizers",
+            "items": [
+              {
+                "name": "Item name",
+                "description": "Brief description",
+                "dietaryInfo": ["Vegetarian", "Gluten-free", etc.]
+              }
+            ]
+          },
+          {
+            "category": "Main Course",
+            "items": [...]
+          },
+          {
+            "category": "Sides",
+            "items": [...]
+          },
+          {
+            "category": "Desserts",
+            "items": [...]
+          }
+        ],
+        "estimated_cost_per_person": "€XX - €XX",
+        "preparation_tips": "Detailed preparation and cooking tips specific to this menu"
       }
-    ];
+      
+      Ensure the menu is realistic for a beach setting, considering cooking equipment limitations and beach environment. Include locally-sourced Maltese ingredients where appropriate.
+    `;
 
-    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: messages as any,
+      model: MODEL,
+      messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
-      temperature: 0.7
     });
 
-    // Parse and return the JSON response
-    const content = response.choices[0].message.content;
-    return content ? JSON.parse(content) : null;
+    return JSON.parse(response.choices[0].message.content);
   } catch (error) {
-    console.error('Error generating custom menu:', error);
-    throw error;
+    console.error("Error generating custom menu:", error);
+    throw new Error("Failed to generate custom BBQ menu");
   }
 }
 
@@ -124,26 +124,47 @@ export async function generateCustomMenu(preferences: any): Promise<any> {
  */
 export async function getShoppingAssistance(question: string, bookingContext?: any): Promise<string> {
   try {
-    let context = "You are helping with a BBQ booking on a beach in Malta.";
+    let systemPrompt = `
+      You are a helpful assistant for a beach BBQ rental service in Malta called "Barby and Ken".
+      Your job is to answer questions about the BBQ booking service, provide recommendations,
+      and assist customers throughout their booking journey.
+      
+      Some key information about Barby and Ken BBQ service:
+      - We offer various BBQ packages for beaches across Malta
+      - Packages range from basic BBQ-only to premium packages with food and drinks
+      - We handle delivery, setup, and collection
+      - Bookings are made for 3-hour time slots between 12pm-10pm
+      - We have a beach cleanup contribution option (€5) that supports local beach cleanup initiatives
+      - Payment can be made in both fiat currency and cryptocurrency
+      
+      Keep your answers helpful, friendly, and concise. Encourage the customer to complete their booking.
+    `;
+
     if (bookingContext) {
-      context += ` Current booking information: ${JSON.stringify(bookingContext)}`;
+      systemPrompt += `
+        The customer is currently in the process of making a booking with the following details:
+        - Location: ${bookingContext.location || "Not yet selected"}
+        - Package: ${bookingContext.package || "Not yet selected"}
+        - Date: ${bookingContext.date ? new Date(bookingContext.date).toLocaleDateString() : "Not yet selected"}
+        - Time slot: ${bookingContext.timeSlot || "Not yet selected"}
+        - Beach cleanup contribution: ${bookingContext.cleanupContribution ? "Added" : "Not added"}
+        
+        Tailor your response based on where they are in the booking process.
+      `;
     }
 
-    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: MODEL,
       messages: [
-        { role: "system", content: context },
+        { role: "system", content: systemPrompt },
         { role: "user", content: question }
-      ],
-      temperature: 0.7,
-      max_tokens: 300
+      ]
     });
 
-    return response.choices[0].message.content || "I'm not sure how to help with that.";
+    return response.choices[0].message.content;
   } catch (error) {
-    console.error('Error getting shopping assistance:', error);
-    throw error;
+    console.error("Error getting shopping assistance:", error);
+    throw new Error("Failed to get assistant response");
   }
 }
 
@@ -152,43 +173,44 @@ export async function getShoppingAssistance(question: string, bookingContext?: a
  */
 export async function analyzeBookingChoices(bookingDetails: any): Promise<any> {
   try {
-    const messages = [
+    const prompt = `
+      You are an AI advisor for a beach BBQ rental service in Malta called "Barby and Ken".
+      Analyze the following booking details and suggest improvements or additions that would enhance the customer's experience.
+      
+      Current booking details:
+      - Location: ${bookingDetails.location || "Not selected"}
+      - Package: ${bookingDetails.package || "Not selected"}
+      - Date: ${bookingDetails.date ? new Date(bookingDetails.date).toLocaleDateString() : "Not selected"}
+      - Time slot: ${bookingDetails.timeSlot || "Not selected"}
+      - Beach cleanup contribution: ${bookingDetails.cleanupContribution ? "Added" : "Not added"}
+      
+      Provide an analysis in JSON format with the following structure:
       {
-        role: "system",
-        content: `You are a BBQ planning assistant for Barby & Ken, a premium BBQ service in Malta.
-        Analyze the user's current booking choices and provide suggestions to enhance their experience.
-        Format your response as JSON with the following structure:
-        {
-          "suggestions": [
-            {
-              "type": "suggestion type",
-              "title": "Suggestion title",
-              "description": "Details about why this would enhance their experience",
-              "additional_cost": "Estimated additional cost if applicable"
-            }
-          ],
-          "overall_assessment": "Brief assessment of current choices"
-        }`
-      },
-      {
-        role: "user", 
-        content: `Analyze my current BBQ booking choices and suggest improvements: ${JSON.stringify(bookingDetails)}`
+        "suggestions": [
+          {
+            "type": "upgrade/essential/experience/budget",
+            "title": "Brief title of suggestion",
+            "description": "Detailed explanation of why this would improve their experience",
+            "additional_cost": "Approximate additional cost in Euros, if any"
+          }
+        ],
+        "overall_assessment": "Overall assessment of the current booking choices and any general recommendations"
       }
-    ];
+      
+      Focus on realistic and valuable enhancements, considering the beach location, group dynamics, and overall experience. 
+      If they haven't selected the beach cleanup contribution, that should be one of your suggestions.
+      Include at least 3-4 suggestions of different types.
+    `;
 
-    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: messages as any,
+      model: MODEL,
+      messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
-      temperature: 0.7
     });
 
-    // Parse and return the JSON response
-    const content = response.choices[0].message.content;
-    return content ? JSON.parse(content) : null;
+    return JSON.parse(response.choices[0].message.content);
   } catch (error) {
-    console.error('Error analyzing booking choices:', error);
-    throw error;
+    console.error("Error analyzing booking:", error);
+    throw new Error("Failed to analyze booking choices");
   }
 }

@@ -13,6 +13,7 @@ import { ShareBooking } from "@/components/share-booking";
 import { BookingStatus } from "@/components/booking-status";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
+import { AIShopping } from "@/components/ai-shopping";
 
 const fadeInOut = {
   initial: { opacity: 0, y: 20 },
@@ -144,6 +145,49 @@ export default function BookingPage() {
     }
   };
 
+  // Prepare booking data for AI shopping
+  const getBookingData = () => {
+    if (!selectedLocation && !selectedPackage && !selectedDate) {
+      return null;
+    }
+    
+    const locationData = locations?.find(loc => loc.id === selectedLocation);
+    const packageData = packages?.find(pkg => pkg.id === selectedPackage);
+    
+    return {
+      location: locationData?.name || '',
+      package: packageData?.name || '',
+      date: selectedDate?.toISOString() || '',
+      cleanupContribution,
+      timeSlot: "09:00-12:00"
+    };
+  };
+
+  // Handle package recommendation from AI
+  const handlePackageRecommendation = (packageName: string) => {
+    const pkg = packages?.find(p => p.name.toLowerCase() === packageName.toLowerCase());
+    if (pkg) {
+      setSelectedPackage(pkg.id);
+      toast({
+        title: "Package Selected",
+        description: `${pkg.name} has been selected based on AI recommendation.`,
+      });
+    }
+  };
+
+  // Handle applying suggestions from AI analyzer
+  const handleApplySuggestion = (suggestion: any) => {
+    // Implement the logic to apply suggestions
+    // For example, if suggestion is to add beach cleanup contribution
+    if (suggestion.type === "experience" && suggestion.title.includes("Beach Cleanup")) {
+      setCleanupContribution(true);
+      toast({
+        title: "Suggestion Applied",
+        description: "Beach cleanup contribution has been added to your booking.",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-orange-50 py-12">
       {user?.isAdmin && (
@@ -168,165 +212,182 @@ export default function BookingPage() {
           Book Your BBQ Experience
         </motion.h1>
 
-        <div className="space-y-12">
-          <AnimatePresence mode="wait">
-            {!isBooked ? (
-              <>
-                <motion.section {...fadeInOut} key="location-section">
-                  <h2 className="text-2xl font-semibold mb-4">Choose Location</h2>
-                  <LocationSelector
-                    locations={locations || []}
-                    selectedId={selectedLocation}
-                    onSelect={setSelectedLocation}
-                  />
-                </motion.section>
-
-                {selectedLocation && (
-                  <motion.section {...fadeInOut} key="package-section">
-                    <h2 className="text-2xl font-semibold mb-4">Select Package</h2>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {packages?.map((pkg) => (
-                        <PackageCard
-                          key={pkg.id}
-                          package={pkg}
-                          selected={selectedPackage === pkg.id}
-                          onSelect={() => setSelectedPackage(pkg.id)}
-                        />
-                      ))}
-                    </div>
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-12">
+            <AnimatePresence mode="wait">
+              {!isBooked ? (
+                <>
+                  <motion.section {...fadeInOut} key="location-section">
+                    <h2 className="text-2xl font-semibold mb-4">Choose Location</h2>
+                    <LocationSelector
+                      locations={locations || []}
+                      selectedId={selectedLocation}
+                      onSelect={setSelectedLocation}
+                    />
                   </motion.section>
-                )}
 
-                {selectedPackage && (
-                  <motion.section {...fadeInOut} key="date-section">
-                    <h2 className="text-2xl font-semibold mb-4">Choose Preferred Date</h2>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <Card>
-                        <CardContent className="pt-6">
-                          <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            disabled={{ before: new Date() }}
-                            className="rounded-md border"
+                  {selectedLocation && (
+                    <motion.section {...fadeInOut} key="package-section">
+                      <h2 className="text-2xl font-semibold mb-4">Select Package</h2>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
+                        {packages?.map((pkg) => (
+                          <PackageCard
+                            key={pkg.id}
+                            package={pkg}
+                            selected={selectedPackage === pkg.id}
+                            onSelect={() => setSelectedPackage(pkg.id)}
                           />
-                        </CardContent>
-                      </Card>
+                        ))}
+                      </div>
+                    </motion.section>
+                  )}
 
-                      <Card>
-                        <CardContent className="pt-6">
-                          <h3 className="font-semibold mb-4">Real-time Availability</h3>
-                          <AvailabilityDisplay selectedDate={selectedDate} />
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </motion.section>
-                )}
-
-                {selectedLocation && selectedPackage && selectedDate && !isBooked && (
-                  <motion.section {...fadeInOut} key="cleanup-contribution-section">
-                    <Card className="max-w-md mx-auto mb-6">
-                      <CardContent className="pt-6">
-                        <div className="flex items-start space-x-3 p-2">
-                          <div className="flex items-center h-5 mt-1">
-                            <input
-                              type="checkbox"
-                              checked={cleanupContribution}
-                              onChange={(e) => setCleanupContribution(e.target.checked)}
-                              className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  {selectedPackage && (
+                    <motion.section {...fadeInOut} key="date-section">
+                      <h2 className="text-2xl font-semibold mb-4">Choose Preferred Date</h2>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <Card>
+                          <CardContent className="pt-6">
+                            <Calendar
+                              mode="single"
+                              selected={selectedDate}
+                              onSelect={setSelectedDate}
+                              disabled={{ before: new Date() }}
+                              className="rounded-md border"
                             />
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardContent className="pt-6">
+                            <h3 className="font-semibold mb-4">Real-time Availability</h3>
+                            <AvailabilityDisplay selectedDate={selectedDate} />
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </motion.section>
+                  )}
+
+                  {selectedLocation && selectedPackage && selectedDate && !isBooked && (
+                    <motion.section {...fadeInOut} key="cleanup-contribution-section">
+                      <Card className="max-w-md mx-auto mb-6">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start space-x-3 p-2">
+                            <div className="flex items-center h-5 mt-1">
+                              <input
+                                type="checkbox"
+                                checked={cleanupContribution}
+                                onChange={(e) => setCleanupContribution(e.target.checked)}
+                                className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                              />
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-medium text-gray-900">One-click Beach Cleanup Contribution</h3>
+                              <p className="text-sm text-gray-500">
+                                Add €5.00 to your booking to contribute to local beach cleanup efforts. 
+                                100% of this amount goes directly to community-led initiatives that keep Malta's 
+                                beaches clean and safe for everyone.
+                              </p>
+                              {cleanupContribution && (
+                                <div className="mt-2 p-2 bg-green-50 rounded-md">
+                                  <p className="text-sm text-green-700">
+                                    Thank you for your contribution to keep our beaches clean! 🌊
+                                  </p>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="text-lg font-medium text-gray-900">One-click Beach Cleanup Contribution</h3>
-                            <p className="text-sm text-gray-500">
-                              Add €5.00 to your booking to contribute to local beach cleanup efforts. 
-                              100% of this amount goes directly to community-led initiatives that keep Malta's 
-                              beaches clean and safe for everyone.
-                            </p>
-                            {cleanupContribution && (
-                              <div className="mt-2 p-2 bg-green-50 rounded-md">
-                                <p className="text-sm text-green-700">
-                                  Thank you for your contribution to keep our beaches clean! 🌊
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  
-                    <motion.div 
-                      className="text-center"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Button
-                        className="bg-orange-600 hover:bg-orange-700"
-                        size="lg"
-                        onClick={handleBooking}
+                        </CardContent>
+                      </Card>
+                    
+                      <motion.div 
+                        className="text-center"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
                       >
-                        Book via WhatsApp
-                      </Button>
-                    </motion.div>
-                  </motion.section>
-                )}
-              </>
-            ) : (
-              <motion.div
-                key="booking-confirmation"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="max-w-md mx-auto"
-              >
-                <Card className="shadow-lg">
-                  <CardContent className="pt-6 space-y-6">
-                    <div className="text-center">
-                      <h2 className="text-2xl font-bold text-green-600 mb-2">Booking Confirmed!</h2>
-                      <p className="text-gray-600 mb-4">
-                        Your booking has been created successfully! WhatsApp will open shortly to finalize the details.
-                      </p>
-                      {currentBooking?.cleanupContribution && (
-                        <div className="bg-green-50 p-3 rounded-md mb-4">
-                          <p className="text-green-700 text-sm flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Thank you for your €5.00 beach cleanup contribution!
-                          </p>
-                          <p className="text-xs text-green-600 text-center mt-1">
-                            Your support helps keep Malta's beaches beautiful
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    {currentBooking && (
-                      <>
-                        <ShareBooking
-                          location={locations?.find(loc => loc.id === currentBooking.locationId)?.name || ''}
-                          date={new Date(currentBooking.date).toLocaleDateString('en-GB', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                          package={packages?.find(pkg => pkg.id === currentBooking.packageId)?.name || ''}
-                        />
-                        <BookingStatus booking={currentBooking} />
-                      </>
-                    )}
-                    <div className="text-center mt-4">
-                      <Link href="/profile">
-                        <Button variant="outline" className="mr-2">
-                          View My Bookings
+                        <Button
+                          className="bg-orange-600 hover:bg-orange-700"
+                          size="lg"
+                          onClick={handleBooking}
+                        >
+                          Book via WhatsApp
                         </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                      </motion.div>
+                    </motion.section>
+                  )}
+                </>
+              ) : (
+                <motion.div
+                  key="booking-confirmation"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="max-w-md mx-auto"
+                >
+                  <Card className="shadow-lg">
+                    <CardContent className="pt-6 space-y-6">
+                      <div className="text-center">
+                        <h2 className="text-2xl font-bold text-green-600 mb-2">Booking Confirmed!</h2>
+                        <p className="text-gray-600 mb-4">
+                          Your booking has been created successfully! WhatsApp will open shortly to finalize the details.
+                        </p>
+                        {currentBooking?.cleanupContribution && (
+                          <div className="bg-green-50 p-3 rounded-md mb-4">
+                            <p className="text-green-700 text-sm flex items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Thank you for your €5.00 beach cleanup contribution!
+                            </p>
+                            <p className="text-xs text-green-600 text-center mt-1">
+                              Your support helps keep Malta's beaches beautiful
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      {currentBooking && (
+                        <>
+                          <ShareBooking
+                            location={locations?.find(loc => loc.id === currentBooking.locationId)?.name || ''}
+                            date={new Date(currentBooking.date).toLocaleDateString('en-GB', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                            package={packages?.find(pkg => pkg.id === currentBooking.packageId)?.name || ''}
+                          />
+                          <BookingStatus booking={currentBooking} />
+                        </>
+                      )}
+                      <div className="text-center mt-4">
+                        <Link href="/profile">
+                          <Button variant="outline" className="mr-2">
+                            View My Bookings
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          
+          {/* AI Shopping Assistant Column */}
+          <div className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <AIShopping 
+                bookingData={getBookingData()} 
+                onSelectPackage={handlePackageRecommendation}
+                onApplySuggestion={handleApplySuggestion}
+              />
+            </motion.div>
+          </div>
         </div>
       </div>
     </div>
