@@ -12,6 +12,9 @@ import aiShoppingRoutes from "./api/ai-shopping";
 
 export async function registerRoutes(app: Express) {
   const httpServer = createServer(app);
+  
+  // Register AI shopping routes
+  app.use('/api/ai-shopping', aiShoppingRoutes);
 
   // Setup session middleware
   app.use(
