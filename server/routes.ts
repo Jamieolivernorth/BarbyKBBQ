@@ -8,6 +8,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import fetch from 'node-fetch';
 import path from "path";
 import fs from "fs";
+import aiShoppingRoutes from "./api/ai-shopping";
 
 export async function registerRoutes(app: Express) {
   const httpServer = createServer(app);
