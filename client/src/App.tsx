@@ -13,6 +13,7 @@ import AdminDashboard from "@/pages/admin";
 import AdminBookings from "@/pages/admin/bookings";
 import AdminAffiliate from "@/pages/admin/affiliate";
 import { EnvironmentBanner } from "@/components/environment-banner";
+import { EnvironmentSwitcher } from "@/components/environment-switcher";
 
 function RequireAuth({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) {
   const [, setLocation] = useLocation();
@@ -81,6 +82,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <EnvironmentBanner />
       <Router />
+      <EnvironmentSwitcher />
       <Toaster />
     </QueryClientProvider>
   );

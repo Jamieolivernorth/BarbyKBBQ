@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { config, logWithEnv } from "./config";
 
 const app = express();
 app.use(express.json());
@@ -56,14 +57,15 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client
-  const port = 5000;
+  // Get port from environment config
+  const port = config.port;
+  
   server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
+    logWithEnv(`Server started in ${config.environment} environment`);
     log(`serving on port ${port}`);
   });
 })();
