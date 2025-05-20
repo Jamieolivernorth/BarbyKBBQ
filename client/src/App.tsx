@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import AdminDashboard from "@/pages/admin";
 import AdminBookings from "@/pages/admin/bookings";
 import AdminAffiliate from "@/pages/admin/affiliate";
+import { EnvironmentBanner } from "@/components/environment-banner";
 
 function RequireAuth({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) {
   const [, setLocation] = useLocation();
@@ -78,6 +79,7 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <EnvironmentBanner />
       <Router />
       <Toaster />
     </QueryClientProvider>

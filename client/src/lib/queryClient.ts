@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { config, CURRENT_ENV } from "@shared/config";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -12,9 +13,18 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  // Construct full URL if it's a relative path and not already an absolute URL
+  const fullUrl = url.startsWith('http') ? url : `${config.apiUrl}${url}`;
+  
+  // Add environment headers for debugging
+  const headers: Record<string, string> = {
+    ...data ? { "Content-Type": "application/json" } : {},
+    "X-Environment": CURRENT_ENV
+  };
+  
+  const res = await fetch(fullUrl, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -29,8 +39,15 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    // Construct full URL if it's a relative path and not already an absolute URL
+    const url = queryKey[0] as string;
+    const fullUrl = url.startsWith('http') ? url : `${config.apiUrl}${url}`;
+    
+    const res = await fetch(fullUrl, {
       credentials: "include",
+      headers: {
+        "X-Environment": CURRENT_ENV
+      }
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
