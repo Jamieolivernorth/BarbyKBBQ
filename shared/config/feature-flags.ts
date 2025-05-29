@@ -35,9 +35,8 @@ export const defaultFeatureFlags: FeatureFlags = {
  * Can be extended to read from localStorage, admin settings, or environment variables
  */
 export function getFeatureFlags(): FeatureFlags {
-  // For now, return default flags
-  // In the future, this could check localStorage or fetch from an admin API
-  return defaultFeatureFlags;
+  // Load from localStorage if available, otherwise use defaults
+  return loadFeatureFlagsFromStorage();
 }
 
 /**
