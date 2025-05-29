@@ -12,21 +12,21 @@ interface EnvironmentConfig {
 
 const environments: Record<Environment, EnvironmentConfig> = {
   local: {
-    apiUrl: 'http://localhost:5000',
-    appTitle: 'Barby & Ken BBQ (Local)',
-    isProduction: false,
-    enableMockData: true,
-    analyticsEnabled: false
+    apiUrl: '',
+    appTitle: 'Barby & Ken BBQ',
+    isProduction: true,
+    enableMockData: false,
+    analyticsEnabled: true
   },
   staging: {
-    apiUrl: 'https://staging.barbyandken.com/api',
-    appTitle: 'Barby & Ken BBQ (Staging)',
-    isProduction: false,
+    apiUrl: '',
+    appTitle: 'Barby & Ken BBQ',
+    isProduction: true,
     enableMockData: false,
     analyticsEnabled: true
   },
   production: {
-    apiUrl: 'https://barbyandken.com',
+    apiUrl: '',
     appTitle: 'Barby & Ken BBQ',
     isProduction: true,
     enableMockData: false,

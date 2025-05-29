@@ -13,17 +13,14 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Construct full URL if it's a relative path and not already an absolute URL
-  const fullUrl = url.startsWith('http') ? url : `${config.apiUrl}${url}`;
+  // Use relative URLs that work with the current server
+  const fullUrl = url.startsWith('http') ? url : url;
   
   console.log(`Making ${method} request to: ${fullUrl}`);
-  console.log(`Config API URL: ${config.apiUrl}`);
-  console.log(`Environment: ${CURRENT_ENV}`);
   
-  // Add environment headers for debugging
+  // Add headers for debugging
   const headers: Record<string, string> = {
     ...data ? { "Content-Type": "application/json" } : {},
-    "X-Environment": CURRENT_ENV
   };
   
   try {
@@ -48,15 +45,11 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Construct full URL if it's a relative path and not already an absolute URL
+    // Use relative URLs that work with the current server
     const url = queryKey[0] as string;
-    const fullUrl = url.startsWith('http') ? url : `${config.apiUrl}${url}`;
     
-    const res = await fetch(fullUrl, {
+    const res = await fetch(url, {
       credentials: "include",
-      headers: {
-        "X-Environment": CURRENT_ENV
-      }
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
