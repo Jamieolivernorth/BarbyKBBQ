@@ -26,7 +26,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     analyticsEnabled: true
   },
   production: {
-    apiUrl: 'https://api.barbyandken.com',
+    apiUrl: 'https://barbyandken.com',
     appTitle: 'Barby & Ken BBQ',
     isProduction: true,
     enableMockData: false,
@@ -34,36 +34,26 @@ const environments: Record<Environment, EnvironmentConfig> = {
   }
 };
 
-// Default to local environment
+// Force local environment for development
 let currentEnvironment: Environment = 'local';
 
 // Check if we're in a browser environment
 if (typeof window !== 'undefined') {
-  // Check if we're on a production domain first
-  if (window.location.hostname === 'barbyandken.com' || 
-      window.location.hostname === 'www.barbyandken.com') {
+  // Force local environment for development domains
+  if (window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.includes('replit.dev') ||
+      window.location.hostname.includes('replit.app') ||
+      window.location.hostname.includes('replit.')) {
+    currentEnvironment = 'local';
+  } else if (window.location.hostname === 'barbyandken.com' || 
+            window.location.hostname === 'www.barbyandken.com') {
     currentEnvironment = 'production';
   } else if (window.location.hostname === 'staging.barbyandken.com') {
     currentEnvironment = 'staging';
-  } else if (window.location.hostname === 'localhost' || 
-            window.location.hostname === '127.0.0.1' ||
-            window.location.hostname.includes('.replit.')) {
-    // Force local environment for development
-    currentEnvironment = 'local';
   } else {
-    // Get environment from URL or localStorage for other cases
-    const urlParams = new URLSearchParams(window.location.search);
-    const envParam = urlParams.get('env') as Environment | null;
-    
-    if (envParam && environments[envParam]) {
-      currentEnvironment = envParam;
-      localStorage.setItem('app_environment', envParam);
-    } else {
-      const storedEnv = localStorage.getItem('app_environment') as Environment | null;
-      if (storedEnv && environments[storedEnv]) {
-        currentEnvironment = storedEnv;
-      }
-    }
+    // Default to local for any other development environment
+    currentEnvironment = 'local';
   }
 } else {
   // Server-side - get from NODE_ENV
@@ -75,8 +65,9 @@ if (typeof window !== 'undefined') {
   }
 }
 
-export const config = environments[currentEnvironment];
-export const CURRENT_ENV = currentEnvironment;
+// Force local config for development
+export const config = environments['local'];
+export const CURRENT_ENV = 'local';
 
 // Helper function to check current environment
 export function isEnvironment(env: Environment): boolean {

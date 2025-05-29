@@ -109,11 +109,20 @@ export class EnvironmentManager {
     }
     
     // Domain-based automatic environment detection
-    if (window.location.hostname === 'barbyandken.com' || 
-        window.location.hostname === 'www.barbyandken.com') {
+    if (window.location.hostname === 'localhost' || 
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname.includes('replit.dev') ||
+        window.location.hostname.includes('replit.app') ||
+        window.location.hostname.includes('replit.')) {
+      this.activeEnvironment = 'local';
+    } else if (window.location.hostname === 'barbyandken.com' || 
+               window.location.hostname === 'www.barbyandken.com') {
       this.activeEnvironment = 'production';
     } else if (window.location.hostname === 'staging.barbyandken.com') {
       this.activeEnvironment = 'staging';
+    } else {
+      // Default to local for any other development environment
+      this.activeEnvironment = 'local';
     }
     
     console.log(`Environment initialized: ${this.activeEnvironment.toUpperCase()}`);
