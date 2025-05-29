@@ -116,6 +116,12 @@ export default function AdminDashboard() {
                   Manage Affiliate Links
                 </Button>
               </Link>
+
+              <Link href="/admin/feature-flags">
+                <Button variant="default" className="w-full text-left bg-blue-600 hover:bg-blue-700">
+                  Feature Flags
+                </Button>
+              </Link>
               
               <Link href="/admin/bookings?cleanup=with-cleanup">
                 <Button variant="default" className="w-full text-left bg-green-600 hover:bg-green-700">

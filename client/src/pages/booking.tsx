@@ -14,6 +14,7 @@ import { BookingStatus } from "@/components/booking-status";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
 import { AIShopping } from "@/components/ai-shopping";
+import { isFeatureEnabled } from "@shared/config/feature-flags";
 
 const fadeInOut = {
   initial: { opacity: 0, y: 20 },
@@ -212,8 +213,8 @@ export default function BookingPage() {
           Book Your BBQ Experience
         </motion.h1>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-12">
+        <div className={`grid gap-8 ${isFeatureEnabled('aiShopping') ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
+          <div className={`space-y-12 ${isFeatureEnabled('aiShopping') ? 'lg:col-span-2' : ''}`}>
             <AnimatePresence mode="wait">
               {!isBooked ? (
                 <>
@@ -374,20 +375,22 @@ export default function BookingPage() {
             </AnimatePresence>
           </div>
           
-          {/* AI Shopping Assistant Column */}
-          <div className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <AIShopping 
-                bookingData={getBookingData()} 
-                onSelectPackage={handlePackageRecommendation}
-                onApplySuggestion={handleApplySuggestion}
-              />
-            </motion.div>
-          </div>
+          {/* AI Shopping Assistant Column - Only show if feature is enabled */}
+          {isFeatureEnabled('aiShopping') && (
+            <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <AIShopping 
+                  bookingData={getBookingData()} 
+                  onSelectPackage={handlePackageRecommendation}
+                  onApplySuggestion={handleApplySuggestion}
+                />
+              </motion.div>
+            </div>
+          )}
         </div>
       </div>
     </div>

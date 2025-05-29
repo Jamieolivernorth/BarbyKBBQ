@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import AdminDashboard from "@/pages/admin";
 import AdminBookings from "@/pages/admin/bookings";
 import AdminAffiliate from "@/pages/admin/affiliate";
+import FeatureFlags from "@/pages/admin/feature-flags";
 import { EnvironmentBanner } from "@/components/environment-banner";
 import { EnvironmentSwitcher } from "@/components/environment-switcher";
 
@@ -70,6 +71,11 @@ function Router() {
       <Route path="/admin/affiliate">
         <RequireAuth requireAdmin={true}>
           <AdminAffiliate />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/feature-flags">
+        <RequireAuth requireAdmin={true}>
+          <FeatureFlags />
         </RequireAuth>
       </Route>
       <Route component={NotFound} />
