@@ -1,6 +1,7 @@
 import { 
   User, InsertUser, Booking, InsertBooking,
-  LOCATIONS, PACKAGES, SlotAvailability, TIME_SLOTS, MAX_BBQS, BookingStatus
+  LOCATIONS, PACKAGES, SlotAvailability, TIME_SLOTS, MAX_BBQS, BookingStatus,
+  BBQEquipment, InsertBBQEquipment, BBQStatus, DEFAULT_BBQ_EQUIPMENT
 } from "@shared/schema";
 
 interface Asset {
@@ -80,6 +81,14 @@ export interface IStorage {
   updateBooking(bookingId: number, data: Partial<Booking>): Promise<Booking>;
   updateUser(userId: number, data: Partial<User>): Promise<User>;
 
+  // BBQ Equipment methods
+  getAllBBQEquipment(): Promise<BBQEquipment[]>;
+  getBBQEquipment(id: number): Promise<BBQEquipment | undefined>;
+  updateBBQEquipment(id: number, data: Partial<BBQEquipment>): Promise<BBQEquipment>;
+  assignBBQToBooking(bbqId: number, bookingId: number): Promise<BBQEquipment>;
+  releaseBBQFromBooking(bbqId: number): Promise<BBQEquipment>;
+  getAvailableBBQs(): Promise<BBQEquipment[]>;
+
   // Affiliate methods
   createAffiliateLink(link: InsertAffiliateLink): Promise<AffiliateLink>;
   getAllAffiliateLinks(): Promise<AffiliateLink[]>;
@@ -106,6 +115,8 @@ export class MemStorage implements IStorage {
   private commissionTransactions: Map<number, CommissionTransaction>;
   private currentAffiliateLinkId: number;
   private currentTransactionId: number;
+  private bbqEquipment: Map<number, BBQEquipment>;
+  private currentBBQId: number;
 
   constructor() {
     this.users = new Map();
@@ -117,6 +128,17 @@ export class MemStorage implements IStorage {
     this.commissionTransactions = new Map();
     this.currentAffiliateLinkId = 1;
     this.currentTransactionId = 1;
+    this.bbqEquipment = new Map();
+    this.currentBBQId = 6;
+
+    // Initialize with default BBQ equipment
+    DEFAULT_BBQ_EQUIPMENT.forEach(bbq => {
+      this.bbqEquipment.set(bbq.id, {
+        ...bbq,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    });
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -338,6 +360,86 @@ export class MemStorage implements IStorage {
     };
     this.users.set(userId, updatedUser);
     return updatedUser;
+  }
+
+  // BBQ Equipment management methods
+  async getAllBBQEquipment(): Promise<BBQEquipment[]> {
+    return Array.from(this.bbqEquipment.values());
+  }
+
+  async getBBQEquipment(id: number): Promise<BBQEquipment | undefined> {
+    return this.bbqEquipment.get(id);
+  }
+
+  async updateBBQEquipment(id: number, data: Partial<BBQEquipment>): Promise<BBQEquipment> {
+    const bbq = this.bbqEquipment.get(id);
+    if (!bbq) {
+      throw new Error("BBQ equipment not found");
+    }
+
+    const updatedBBQ = { 
+      ...bbq, 
+      ...data, 
+      updatedAt: new Date() 
+    };
+    
+    this.bbqEquipment.set(id, updatedBBQ);
+    return updatedBBQ;
+  }
+
+  async assignBBQToBooking(bbqId: number, bookingId: number): Promise<BBQEquipment> {
+    const bbq = this.bbqEquipment.get(bbqId);
+    if (!bbq) {
+      throw new Error("BBQ equipment not found");
+    }
+
+    if (bbq.status !== "available") {
+      throw new Error("BBQ equipment is not available");
+    }
+
+    const updatedBBQ = { 
+      ...bbq, 
+      status: "in_use" as BBQStatus,
+      currentBookingId: bookingId,
+      updatedAt: new Date() 
+    };
+    
+    this.bbqEquipment.set(bbqId, updatedBBQ);
+
+    // Update the booking to reference this BBQ
+    const booking = this.bookings.get(bookingId);
+    if (booking) {
+      const updatedBooking = { 
+        ...booking, 
+        assignedBbqId: bbqId 
+      };
+      this.bookings.set(bookingId, updatedBooking);
+    }
+
+    return updatedBBQ;
+  }
+
+  async releaseBBQFromBooking(bbqId: number): Promise<BBQEquipment> {
+    const bbq = this.bbqEquipment.get(bbqId);
+    if (!bbq) {
+      throw new Error("BBQ equipment not found");
+    }
+
+    const updatedBBQ = { 
+      ...bbq, 
+      status: "cleaning" as BBQStatus, // Set to cleaning after use
+      currentBookingId: null,
+      updatedAt: new Date() 
+    };
+    
+    this.bbqEquipment.set(bbqId, updatedBBQ);
+    return updatedBBQ;
+  }
+
+  async getAvailableBBQs(): Promise<BBQEquipment[]> {
+    return Array.from(this.bbqEquipment.values()).filter(
+      bbq => bbq.status === "available"
+    );
   }
 }
 
