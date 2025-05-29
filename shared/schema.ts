@@ -12,6 +12,18 @@ export const TIME_SLOTS = [
 
 export const MAX_BBQS = 5; // We now have 5 BBQs available
 
+// BBQ Equipment Status
+export const BBQ_STATUS = [
+  "available",    // Ready for booking
+  "in_use",      // Currently out with customer
+  "cleaning",    // Being cleaned/maintained
+  "maintenance", // Under repair
+  "transit_delivery", // Being delivered to customer
+  "transit_pickup"    // Being picked up from customer
+] as const;
+
+export type BBQStatus = typeof BBQ_STATUS[number];
+
 // Database tables
 export const locations = pgTable("locations", {
   id: serial("id").primaryKey(),
@@ -47,6 +59,20 @@ export const assets = pgTable("assets", {
   path: text("path").notNull().unique(),
   type: text("type").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// BBQ Equipment tracking
+export const bbqEquipment = pgTable("bbq_equipment", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "BBQ Unit #1"
+  model: text("model").notNull(), // e.g., "Weber Genesis II"
+  status: text("status").notNull().default("available"), // BBQStatus
+  currentBookingId: integer("current_booking_id"),
+  lastCleaned: timestamp("last_cleaned"),
+  lastMaintenance: timestamp("last_maintenance"),
+  notes: text("notes"), // Staff notes about condition
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // Add affiliate links table
@@ -116,6 +142,7 @@ export const bookings = pgTable("bookings", {
   paymentStatus: text("payment_status").notNull().default("unpaid"),
   deliveryStatus: text("delivery_status").notNull().default("scheduled"),
   bbqCount: integer("bbq_count").notNull().default(1),
+  assignedBbqId: integer("assigned_bbq_id"), // Which BBQ unit is assigned
   actualStartTime: timestamp("actual_start_time"),
   actualEndTime: timestamp("actual_end_time"),
   notes: text("notes"),
@@ -152,6 +179,8 @@ export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type Location = typeof locations.$inferSelect;
 export type Package = typeof packages.$inferSelect;
+export type BBQEquipment = typeof bbqEquipment.$inferSelect;
+export type InsertBBQEquipment = typeof bbqEquipment.$inferInsert;
 
 // Add types for the new schemas
 export type AffiliateLink = typeof affiliateLinks.$inferSelect;
@@ -277,4 +306,58 @@ export const DEFAULT_ASSETS = [
     type: "image/png",
     createdAt: new Date(),
   }
-] as const;
+];
+
+// Default BBQ Equipment for initialization
+export const DEFAULT_BBQ_EQUIPMENT = [
+  {
+    id: 1,
+    name: "BBQ Unit #1",
+    model: "Weber Genesis II E-310",
+    status: "available" as BBQStatus,
+    currentBookingId: null,
+    lastCleaned: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    lastMaintenance: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
+    notes: "Excellent condition",
+  },
+  {
+    id: 2,
+    name: "BBQ Unit #2", 
+    model: "Weber Genesis II E-310",
+    status: "available" as BBQStatus,
+    currentBookingId: null,
+    lastCleaned: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    lastMaintenance: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    notes: "Good condition",
+  },
+  {
+    id: 3,
+    name: "BBQ Unit #3",
+    model: "Weber Genesis II E-310", 
+    status: "cleaning" as BBQStatus,
+    currentBookingId: null,
+    lastCleaned: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    lastMaintenance: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+    notes: "Needs deep cleaning after last use",
+  },
+  {
+    id: 4,
+    name: "BBQ Unit #4",
+    model: "Weber Genesis II E-310",
+    status: "available" as BBQStatus,
+    currentBookingId: null,
+    lastCleaned: new Date(),
+    lastMaintenance: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    notes: "Just cleaned, ready for use",
+  },
+  {
+    id: 5,
+    name: "BBQ Unit #5",
+    model: "Weber Genesis II E-310",
+    status: "maintenance" as BBQStatus,
+    currentBookingId: null,
+    lastCleaned: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    lastMaintenance: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 2 weeks ago
+    notes: "Ignition system needs repair",
+  }
+];
