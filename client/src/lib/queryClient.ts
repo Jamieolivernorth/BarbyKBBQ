@@ -16,21 +16,30 @@ export async function apiRequest(
   // Construct full URL if it's a relative path and not already an absolute URL
   const fullUrl = url.startsWith('http') ? url : `${config.apiUrl}${url}`;
   
+  console.log(`Making ${method} request to: ${fullUrl}`);
+  console.log(`Config API URL: ${config.apiUrl}`);
+  console.log(`Environment: ${CURRENT_ENV}`);
+  
   // Add environment headers for debugging
   const headers: Record<string, string> = {
     ...data ? { "Content-Type": "application/json" } : {},
     "X-Environment": CURRENT_ENV
   };
   
-  const res = await fetch(fullUrl, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  try {
+    const res = await fetch(fullUrl, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
 
-  await throwIfResNotOk(res);
-  return res;
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    console.error(`Fetch error for ${fullUrl}:`, error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
