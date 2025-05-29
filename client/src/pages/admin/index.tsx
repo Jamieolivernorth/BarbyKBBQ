@@ -122,6 +122,18 @@ export default function AdminDashboard() {
                   Feature Flags
                 </Button>
               </Link>
+
+              <Link href="/admin/inventory">
+                <Button variant="default" className="w-full text-left bg-purple-600 hover:bg-purple-700">
+                  BBQ Inventory
+                </Button>
+              </Link>
+
+              <Link href="/admin/driver">
+                <Button variant="default" className="w-full text-left bg-orange-600 hover:bg-orange-700">
+                  Driver Dashboard
+                </Button>
+              </Link>
               
               <Link href="/admin/bookings?cleanup=with-cleanup">
                 <Button variant="default" className="w-full text-left bg-green-600 hover:bg-green-700">

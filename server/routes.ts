@@ -402,5 +402,141 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // BBQ Equipment management routes
+  app.get("/api/admin/bbq-equipment", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    if (!(req.user as any).isAdmin) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
+    try {
+      const equipment = await storage.getAllBBQEquipment();
+      res.json(equipment);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch BBQ equipment" });
+    }
+  });
+
+  app.get("/api/admin/bbq-equipment/:id", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    if (!(req.user as any).isAdmin) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
+    try {
+      const equipment = await storage.getBBQEquipment(Number(req.params.id));
+      if (!equipment) {
+        return res.status(404).json({ error: "BBQ equipment not found" });
+      }
+      res.json(equipment);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch BBQ equipment" });
+    }
+  });
+
+  app.patch("/api/admin/bbq-equipment/:id", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    if (!(req.user as any).isAdmin) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
+    try {
+      const equipment = await storage.updateBBQEquipment(Number(req.params.id), req.body);
+      res.json(equipment);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update BBQ equipment" });
+    }
+  });
+
+  app.post("/api/admin/bbq-equipment/:id/assign", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    if (!(req.user as any).isAdmin) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
+    try {
+      const { bookingId } = req.body;
+      const equipment = await storage.assignBBQToBooking(Number(req.params.id), bookingId);
+      res.json(equipment);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to assign BBQ equipment" });
+    }
+  });
+
+  app.post("/api/admin/bbq-equipment/:id/release", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    if (!(req.user as any).isAdmin) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
+    try {
+      const equipment = await storage.releaseBBQFromBooking(Number(req.params.id));
+      res.json(equipment);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to release BBQ equipment" });
+    }
+  });
+
+  // Driver/Delivery routes for real-time booking system
+  app.get("/api/driver/deliveries", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    try {
+      const bookings = await storage.getAllBookings();
+      const deliveryBookings = bookings.filter(booking => 
+        booking.status === "confirmed" && 
+        (booking.deliveryStatus === "scheduled" || booking.deliveryStatus === "in_transit")
+      );
+      res.json(deliveryBookings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch delivery bookings" });
+    }
+  });
+
+  app.get("/api/driver/pickups", async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: "Not authenticated" });
+      return;
+    }
+
+    try {
+      const bookings = await storage.getAllBookings();
+      const pickupBookings = bookings.filter(booking => 
+        booking.deliveryStatus === "delivered"
+      );
+      res.json(pickupBookings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch pickup bookings" });
+    }
+  });
+
   return httpServer;
 }

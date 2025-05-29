@@ -13,6 +13,8 @@ import AdminDashboard from "@/pages/admin";
 import AdminBookings from "@/pages/admin/bookings";
 import AdminAffiliate from "@/pages/admin/affiliate";
 import FeatureFlagsAdmin from "@/pages/admin/feature-flags";
+import BBQInventoryAdmin from "@/pages/admin/inventory";
+import DriverView from "@/pages/admin/driver";
 import { EnvironmentBanner } from "@/components/environment-banner";
 import { EnvironmentSwitcher } from "@/components/environment-switcher";
 
@@ -76,6 +78,16 @@ function Router() {
       <Route path="/admin/feature-flags">
         <RequireAuth requireAdmin={true}>
           <FeatureFlagsAdmin />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/inventory">
+        <RequireAuth requireAdmin={true}>
+          <BBQInventoryAdmin />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/driver">
+        <RequireAuth requireAdmin={true}>
+          <DriverView />
         </RequireAuth>
       </Route>
       <Route component={NotFound} />
