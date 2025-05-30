@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Booking, LOCATIONS, PACKAGES } from "@shared/schema";
 import { format } from "date-fns";
+import { Link } from "wouter";
+import { ArrowLeft } from "lucide-react";
 
 const deliveryStatusColors = {
   scheduled: "bg-blue-100 text-blue-800",
@@ -176,9 +178,17 @@ export default function DriverView() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Driver Dashboard</h1>
-        <p className="text-gray-600">Real-time delivery and pickup tracking</p>
+      <div className="flex items-center gap-4">
+        <Link href="/admin">
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Admin
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold">Driver Dashboard</h1>
+          <p className="text-gray-600">Real-time delivery and pickup tracking</p>
+        </div>
       </div>
 
       <Tabs defaultValue="deliveries" className="w-full">
