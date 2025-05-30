@@ -502,9 +502,29 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Driver authentication
+  app.post("/api/driver/login", async (req, res) => {
+    const { driverCode } = req.body;
+    
+    // Simple driver code validation (in production, this should be more secure)
+    const validDriverCodes = ["DRIVER001", "DRIVER002", "DELIVERY001", "BARBYKEN2025"];
+    
+    if (!driverCode || !validDriverCodes.includes(driverCode)) {
+      res.status(401).json({ error: "Invalid driver code" });
+      return;
+    }
+
+    // Create a driver session (simplified)
+    req.session.driverAccess = true;
+    req.session.driverCode = driverCode;
+    
+    res.json({ success: true, message: "Driver access granted" });
+  });
+
   // Driver/Delivery routes for real-time booking system
   app.get("/api/driver/deliveries", async (req, res) => {
-    if (!req.user) {
+    // Check for either user authentication or driver access
+    if (!req.user && !req.session.driverAccess) {
       res.status(401).json({ error: "Not authenticated" });
       return;
     }
@@ -522,7 +542,8 @@ export async function registerRoutes(app: Express) {
   });
 
   app.get("/api/driver/pickups", async (req, res) => {
-    if (!req.user) {
+    // Check for either user authentication or driver access
+    if (!req.user && !req.session.driverAccess) {
       res.status(401).json({ error: "Not authenticated" });
       return;
     }

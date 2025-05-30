@@ -15,6 +15,9 @@ import AdminAffiliate from "@/pages/admin/affiliate";
 import FeatureFlagsAdmin from "@/pages/admin/feature-flags";
 import BBQInventoryAdmin from "@/pages/admin/inventory";
 import DriverView from "@/pages/admin/driver";
+import DriverDashboard from "@/pages/driver";
+import DriverLogin from "@/pages/driver-login";
+import { RequireDriverAuth, isDriverSubdomain } from "@/components/driver-auth";
 import { EnvironmentBanner } from "@/components/environment-banner";
 import { EnvironmentSwitcher } from "@/components/environment-switcher";
 
@@ -46,6 +49,26 @@ function RequireAuth({ children, requireAdmin = false }: { children: React.React
 }
 
 function Router() {
+  // Check if this is a driver subdomain
+  const isDriverSite = isDriverSubdomain();
+
+  if (isDriverSite) {
+    // Driver-only routes for subdomain access
+    return (
+      <Switch>
+        <Route path="/" component={DriverLogin} />
+        <Route path="/driver-login" component={DriverLogin} />
+        <Route path="/driver">
+          <RequireDriverAuth>
+            <DriverDashboard />
+          </RequireDriverAuth>
+        </Route>
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
+  // Regular site routes
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -89,6 +112,13 @@ function Router() {
         <RequireAuth requireAdmin={true}>
           <DriverView />
         </RequireAuth>
+      </Route>
+      {/* Driver routes accessible from main site as well */}
+      <Route path="/driver-login" component={DriverLogin} />
+      <Route path="/driver">
+        <RequireDriverAuth>
+          <DriverDashboard />
+        </RequireDriverAuth>
       </Route>
       <Route component={NotFound} />
     </Switch>
