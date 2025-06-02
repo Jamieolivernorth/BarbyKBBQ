@@ -1,18 +1,24 @@
-import express from 'express';
-import path from 'path';
+import express from "express";
+import { registerRoutes } from "./routes";
+import { setupVite } from "./vite";
+import { config, logWithEnv } from "./config";
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+async function startServer() {
+  const app = express();
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
 
-// Serve static assets from dist/public
-app.use(express.static(path.join(__dirname, 'public')));
+  logWithEnv("Server started in development environment");
 
-// Support client-side routing
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+  const server = await registerRoutes(app);
 
-app.listen(PORT, () => {
-  console.log(`[PRODUCTION] Server started in production environment`);
-  console.log(`[express] serving on port ${PORT}`);
-});
+  // Always use Vite development server setup
+  await setupVite(app, server);
+
+  const PORT = config.port;
+  server.listen(PORT, "0.0.0.0", () => {
+    logWithEnv(`serving on port ${PORT}`);
+  });
+}
+
+startServer().catch(console.error);
